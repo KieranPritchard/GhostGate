@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"regexp"
 )
 
 // Gets the outbound address I am after
@@ -163,6 +164,14 @@ func main(){
 
 		if err != nil || port < 1 || port > 65535 {
 			log.Fatalf("Invalid port: %s. Port must be a number between 1 and 65535", *stageDirectoryPort)
+		}
+
+		// Checks if the directory contains letters
+		match, _ := regexp.MatchString(`[[:alpha:]]`, *stageDirectoryDir)
+
+		// Checks if there is not a match
+		if !match {
+			log.Fatalf("Invaild format: %s. Directory must include some letters", *stageDirectoryDir)
 		}
 
 		// Passes the flags into the function
