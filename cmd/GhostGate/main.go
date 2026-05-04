@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 // Gets the outbound address I am after
@@ -205,6 +206,11 @@ func main(){
 		// Checks if there is not a match
 		if !match {
 			log.Fatalf("Invaild format: %s. URL path must include some letters", *uploadFilesUrlPath)
+		}
+
+		// Checks for if the string starts with a forward dash
+		if !strings.HasPrefix(*uploadFilesUrlPath, "/"){
+			log.Fatalf("Invaild format: %s. URL path must include '/'", *uploadFilesUrlPath)
 		}
 
 		// Handles the function
