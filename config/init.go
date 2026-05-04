@@ -16,7 +16,7 @@ func InitializeConfig() error {
 		return fmt.Errorf("could not find config directory: %w", err)
 	}
 	
-	toolDir := filepath.Join(configDir, "my-cli-tool")
+	toolDir := filepath.Join(configDir, "GhostGate")
 	configPath := filepath.Join(toolDir, "config.yaml")
 
 	// 2. Create directory if it doesn't exist (chmod 0755 is standard)
