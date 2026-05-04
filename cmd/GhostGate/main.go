@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GhostGate/config"
 	"flag"
 	"fmt"
 	"io"
@@ -116,6 +117,13 @@ func uploadHandler(writer http.ResponseWriter, reader *http.Request) {
 }
 
 func main(){
+	// Checks if the init command is called
+	if len(os.Args) > 1 && os.Args[1] == "init" {
+		// Initalises the configuration file
+		config.InitializeConfig()
+		return
+	}
+
 	/*
 		Flags for each function which the listner can carry out
 	*/
