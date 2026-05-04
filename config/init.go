@@ -4,43 +4,73 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"bufio"
+	"strings"
 
 	"github.com/spf13/viper"
 )
 
 // InitializeConfig creates the config directory and default file
 func InitializeConfig() error {
-	// 1. Determine path (~/.config/mytool)
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return fmt.Errorf("could not find config directory: %w", err)
-	}
-	
+	configDir, _ := os.UserConfigDir()
 	toolDir := filepath.Join(configDir, "GhostGate")
-	configPath := filepath.Join(toolDir, "config.yaml")
+	configPath := filepath.Join(toolDir, "config.json")
 
-	// 2. Create directory if it doesn't exist (chmod 0755 is standard)
-	if _, err := os.Stat(toolDir); os.IsNotExist(err) {
-		fmt.Printf("Creating config directory at %s...\n", toolDir)
-		if err := os.MkdirAll(toolDir, 0755); err != nil {
-			return fmt.Errorf("failed to create directory: %w", err)
+	// 1. Create directory
+	if err := os.MkdirAll(toolDir, 0755); err != nil {
+		return err
+	}
+
+	// 2. Check if file exists to prevent accidental overwrites
+	if _, err := os.Stat(configPath); err == nil {
+		fmt.Printf("Config already exists at %s. Overwrite? (y/N): ", configPath)
+		var confirm string
+		fmt.Scanln(&confirm)
+		if strings.ToLower(confirm) != "y" {
+			return fmt.Errorf("initialization cancelled")
 		}
 	}
 
-	// 3. Check if file exists
-	if _, err := os.Stat(configPath); err == nil {
-		return fmt.Errorf("config file already exists at %s", configPath)
-	}
-
-	// 4. Set defaults and write file
-	viper.Set("api_key", "YOUR_API_KEY_HERE")
-	viper.Set("verbose", false)
+	// 3. Interactive Prompts
+	reader := bufio.NewReader(os.Stdin)
 	
-	// SafeWriteConfig ensures we don't overwrite an existing file
-	if err := viper.SafeWriteConfigAs(configPath); err != nil {
-		return fmt.Errorf("failed to write config file: %w", err)
+	// Allows the user to enter a port number
+	fmt.Print("Enter your port number: ")
+	portNumber, _ := reader.ReadString('\n')
+	portNumber = strings.TrimSpace(portNumber)
+
+	// Checks if there wasnt anything entered
+	if portNumber == "" {
+        portNumber = "8080"
+    }
+
+	// Allows the user to enter a payloads directory
+	fmt.Print("Enter your payloads directory: ")
+	payloadDir, _ := reader.ReadString('\n')
+	payloadDir = strings.TrimSpace(payloadDir)
+
+	if payloadDir == "" {
+        payloadDir = "payloads"
+    }
+
+	fmt.Print("Enter your upload path: ")
+	uploadPath, _ := reader.ReadString('\n')
+	uploadPath = strings.TrimSpace(uploadPath)
+
+	if uploadPath == "" {
+        uploadPath = "/uploads"
+    }
+
+	// 4. Save to Viper
+	viper.Set("default_port", portNumber)
+	viper.Set("default_payloads_directory", uploadPath)
+	viper.Set("default_url_path", uploadPath)
+
+	// 5. Write to file
+	if err := viper.WriteConfigAs(configPath); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
 	}
 
-	fmt.Printf("Initialized default config at %s\n", configPath)
+	fmt.Printf("\nSuccess! Configuration saved to %s\n", configPath)
 	return nil
 }
