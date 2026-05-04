@@ -180,6 +180,33 @@ func main(){
 		// Parse the flags
 		uploadFilesOption.Parse(os.Args[2:])
 
+		// Performs a length check on the stage directory port
+		if len(*uploadFilesPort) > 5 {
+			log.Fatalf("Invalid port: %s. Port must be a length of 5 or lower", *uploadFilesPort)
+		}
+
+		// Checks if the port flag is a number
+		_, err := strconv.Atoi(*uploadFilesPort)
+		
+		if err != nil {
+			log.Fatalf("Invalid port: %s. Port must be a number", *uploadFilesPort)
+		}
+
+		// Converts the port number to perform a range check
+		port, err := strconv.Atoi(*uploadFilesPort)
+
+		if err != nil || port < 1 || port > 65535 {
+			log.Fatalf("Invalid port: %s. Port must be a number between 1 and 65535", *uploadFilesPort)
+		}
+
+		// Checks if the directory contains letters
+		match, _ := regexp.MatchString(`[[:alpha:]]`, *uploadFilesUrlPath)
+
+		// Checks if there is not a match
+		if !match {
+			log.Fatalf("Invaild format: %s. URL path must include some letters", *uploadFilesUrlPath)
+		}
+
 		// Handles the function
 		http.HandleFunc(*uploadFilesUrlPath, uploadHandler)
 
