@@ -8,9 +8,9 @@ import (
 
 // Defines the config struct
 type Config struct {
-	DefaultPort string
-	DefaultPayloadsDirectory string
-	DefaultURLPath string
+	DefaultPort string `mapstructure:"default_port"`
+	DefaultPayloadsDirectory string `mapstructure:"default_payloads_directory"`
+	DefaultURLPath string `mapstructure:"default_url_path"`
 }
 
 // Function to load a config file
