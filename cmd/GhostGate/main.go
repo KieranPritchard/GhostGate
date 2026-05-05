@@ -2,10 +2,12 @@ package main
 
 import (
 	"GhostGate/config"
+	"GhostGate/internal/filesystem"
 	"GhostGate/internal/networking"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +18,7 @@ import (
 )
 
 // Function for staging the payload directory
-func stagePayloadDirectory(port string, stagingDir string)  {
+func stagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 	// Creates the staging diredctory if it doesnt exist
 	if _, err := os.Stat(stagingDir); os.IsNotExist(err) {
 		// Stores the errors from creating the directory
@@ -26,8 +28,31 @@ func stagePayloadDirectory(port string, stagingDir string)  {
 		if err != nil {
 			log.Fatal("Error creating directory:", err)
 		}
+	}
 
-		// Add a possible section for adding files from a folder here
+	// Checks for if source directory was supplyed
+	if sourceDir != "" {
+		// Stores the files from the dirtecoru
+		files, err := ioutil.ReadDir(sourceDir)
+
+		// Catches the errors
+		if err != nil {
+			// Logs the error
+			log.Fatal(err)
+		}
+
+		// Loops over the files
+		for _, file := range files {
+			// Gets the names of the files
+			name := file.Name()
+
+			// Creates the paths
+			srcPath := filepath.Join(sourceDir, name)
+			dstPath := filepath.Join(stagingDir, name)
+			
+			// Copies the files
+			filesystem.CopyFile(srcPath, dstPath)
+		}
 	}
 
 	// Creates the file server handler
@@ -118,7 +143,8 @@ func main(){
 
 	// Stores the flags for this flagset
 	stageDirectoryPort := stageDirectoryOption.String("p", "8080", "Specifies the port number to host the server")
-	stageDirectoryDir := stageDirectoryOption.String("f", "payloads", "Specifies the file path of the directory")
+	stageDirectoryDir := stageDirectoryOption.String("f", "payloads", "Specifies the file path of the staging directory")
+	stageDirectorySource := stageDirectoryOption.String("s", "", "Specifies the file path of the source directory")
 
 	// Stores the flag set for uploading files
 	uploadFilesOption := flag.NewFlagSet("uploadFile", flag.ExitOnError)
@@ -169,7 +195,7 @@ func main(){
 		}
 
 		// Passes the flags into the function
-		stagePayloadDirectory(*stageDirectoryPort, *stageDirectoryDir)
+		stagePayloadDirectory(*stageDirectoryPort, *stageDirectoryDir, *stageDirectorySource)
 	case "uploadFile":
 		// Parse the flags
 		uploadFilesOption.Parse(os.Args[2:])
