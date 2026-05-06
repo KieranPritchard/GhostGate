@@ -4,6 +4,7 @@ import (
 	"GhostGate/config"
 	"GhostGate/internal/filesystem"
 	"GhostGate/internal/networking"
+	"GhostGate/internal/validation"
 	"flag"
 	"fmt"
 	"io"
@@ -224,27 +225,17 @@ func main(){
 		// Parse the flags starting from the 3rd argument (index 2)
 		stageDirectoryOption.Parse(os.Args[2:])
 
-		// Performs a length check on the stage directory port
-		if len(*stageDirectoryPort) > 5 {
-			log.Fatalf("Invalid port: %s. Port must be a length of 5 or lower", *stageDirectoryPort)
-		}
+		// Stores the result of the port validation
+		portNumberValid := validation.ValidatePort(*stageDirectoryPort)
 
-		// Checks if the port flag is a number
-		_, err := strconv.Atoi(*stageDirectoryPort)
-		
-		if err != nil {
-			log.Fatalf("Invalid port: %s. Port must be a number", *stageDirectoryPort)
-		}
-
-		// Converts the port number to perform a range check
-		port, err := strconv.Atoi(*stageDirectoryPort)
-
-		if err != nil || port < 1 || port > 65535 {
-			log.Fatalf("Invalid port: %s. Port must be a number between 1 and 65535", *stageDirectoryPort)
+		// Checks if the number is not valid
+		if !portNumberValid {
+			// Logs the error
+			log.Fatalf("Invalid port: %s", *stageDirectoryPort)
 		}
 
 		// Checks if the directory contains letters
-		match, _ := regexp.MatchString(`[[:alpha:]]`, *stageDirectoryDir)
+		match, _ := regexp.MatchString(`[[:alpha:]]`, *stageDirectoryPort)
 
 		// Checks if there is not a match
 		if !match {
@@ -257,23 +248,13 @@ func main(){
 		// Parse the flags
 		uploadFilesOption.Parse(os.Args[2:])
 
-		// Performs a length check on the stage directory port
-		if len(*uploadFilesPort) > 5 {
-			log.Fatalf("Invalid port: %s. Port must be a length of 5 or lower", *uploadFilesPort)
-		}
+		// Stores the result of the port validation
+		portNumberValid := validation.ValidatePort(*uploadFilesPort)
 
-		// Checks if the port flag is a number
-		_, err := strconv.Atoi(*uploadFilesPort)
-		
-		if err != nil {
-			log.Fatalf("Invalid port: %s. Port must be a number", *uploadFilesPort)
-		}
-
-		// Converts the port number to perform a range check
-		port, err := strconv.Atoi(*uploadFilesPort)
-
-		if err != nil || port < 1 || port > 65535 {
-			log.Fatalf("Invalid port: %s. Port must be a number between 1 and 65535", *uploadFilesPort)
+		// Checks if the number is not valid
+		if !portNumberValid {
+			// Logs the error
+			log.Fatalf("Invalid port: %s", *uploadFilesPort)
 		}
 
 		// Checks if the directory contains letters
