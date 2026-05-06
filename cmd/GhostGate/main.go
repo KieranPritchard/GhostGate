@@ -233,16 +233,25 @@ func main(){
 			log.Fatalf("Invalid port: %s", *stageDirectoryPort)
 		}
 
-		// Checks if the directory contains letters
-		match, _ := regexp.MatchString(`[[:alpha:]]`, *stageDirectoryPort)
+		// Stores the result and cleaned version of the validate port
+		cleanDir, dirValid := validation.ValidateFilePath(*stageDirectoryDir)
 
-		// Checks if there is not a match
-		if !match {
-			log.Fatalf("Invaild format: %s. Directory must include some letters", *stageDirectoryDir)
+		// Checks if the directory is not valid
+		if !dirValid {
+			// Logs the error
+			log.Fatalf("Invalid directory: %s", *stageDirectoryDir)
+		}
+
+		cleanSource, sourceValid := validation.ValidateFilePath(*stageDirectorySource)
+
+		// Checks if the directory is not valid
+		if !sourceValid {
+			// Logs the error
+			log.Fatalf("Invalid directory: %s", *stageDirectorySource)
 		}
 
 		// Passes the flags into the function
-		stagePayloadDirectory(*stageDirectoryPort, *stageDirectoryDir, *stageDirectorySource)
+		stagePayloadDirectory(*stageDirectoryPort, cleanDir, cleanSource)
 	case "uploadFile":
 		// Parse the flags
 		uploadFilesOption.Parse(os.Args[2:])
