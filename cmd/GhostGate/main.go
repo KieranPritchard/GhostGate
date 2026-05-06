@@ -128,39 +128,51 @@ func uploadHandler(writer http.ResponseWriter, reader *http.Request) {
 }
 
 // Function for handling tunneling traffic
-func handleTunnel(writer http.ResponseWriter, reader *http.Request, target string){
-	// Creates a new client
-	client := &http.Client{Timeout: 10 * time.Second}
-	// Stores the request made to the target
-	req, _ := http.NewRequest(reader.Method, target+reader.RequestURI, reader.Body)
+// Function for handling tunneling traffic - now returns a handler function
+func handleTunnel(target string) http.HandlerFunc {
+	return func(writer http.ResponseWriter, reader *http.Request) {
+		// Creates a new client
+		client := &http.Client{Timeout: 10 * time.Second}
+		
+		// Stores the request made to the target (using target from the outer function)
+		req, err := http.NewRequest(reader.Method, target+reader.RequestURI, reader.Body)
+		if err != nil {
+			http.Error(writer, "Internal Error", http.StatusInternalServerError)
+			return
+		}
 
-	// Copies the original headers
-	for key, value := range reader.Header {
-		// Copys the header
-		req.Header[key] = value
+		// Copies the original headers
+		for key, values := range reader.Header {
+			for _, value := range values {
+				// Copys the header
+				req.Header.Add(key, value)
+			}
+		}
+
+		// Sends a request and gets the error from the request
+		resp, err := client.Do(req)
+		// Catches the error
+		if err != nil {
+			// Returns a http error
+			http.Error(writer, "Tunnel connection failed", http.StatusBadGateway)
+			return
+		}
+		// Closes when finished
+		defer resp.Body.Close()
+
+		// Relays the response back to the orignal sender
+		for key, values := range resp.Header {
+			for _, value := range values {
+				// Writes the header
+				writer.Header().Add(key, value)
+			}
+		}
+
+		// Writes the status code
+		writer.WriteHeader(resp.StatusCode)
+		// Copies the response body
+		io.Copy(writer, resp.Body)
 	}
-
-	// Sends a request and gets the error from the request
-	resp, err := client.Do(req)
-	// Catches the error
-    if err != nil {
-		// Returns a http error
-        http.Error(writer, "Tunnel connection failed", http.StatusBadGateway)
-        return
-    }
-	// Closes when finished
-    defer resp.Body.Close()
-
-	// Relays the response back to the orignal sender
-	for key, value := range resp.Header {
-		// Writes the header
-		writer.Header()[key] = value
-	}
-
-	// Writes the status code
-	writer.WriteHeader(resp.StatusCode)
-	// Copies the response body
-    io.Copy(writer, resp.Body)
 }
 
 func main(){
@@ -189,6 +201,14 @@ func main(){
 	// Stores the flags for this flagset
 	uploadFilesPort := stageDirectoryOption.String("p", "8080", "Specifies the port number to host the server")
 	uploadFilesUrlPath := stageDirectoryOption.String("u", "/upload", "Specifies the URL path to host the endpoint")
+
+	// Stores the flagset for the tunnel commands
+	tunnelOption := flag.NewFlagSet("tunnel", flag.ExitOnError)
+
+	// Stores the flags for the tunnel options choice
+	tunnelTarget := tunnelOption.String("u", "", "Specifies the target of the tunnel")
+	tunnelPort := tunnelOption.String("p", "8080", "Specifies the port number to host the server")
+
 
 	// Checks if the user has provided a subcommand
 	if len(os.Args) < 2 {
@@ -279,5 +299,14 @@ func main(){
 		if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
 			log.Fatal(err)
 		}
+	case "tunnel":
+		// Parses the flags
+		tunnelOption.Parse(os.Args[2:])
+
+		// Handles the function for tunnel
+		http.HandleFunc("/", handleTunnel(*tunnelTarget))
+		// Outputs information about whats going on
+		log.Println("[*] Pivot/Tunneling Server active on port", *tunnelPort)
+		log.Fatal(http.ListenAndServe(":"+*tunnelPort, nil))
 	}
 }
