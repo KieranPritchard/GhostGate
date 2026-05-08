@@ -177,9 +177,22 @@ func main(){
 	// Checks if the init command is called
 	if len(os.Args) > 1 && os.Args[1] == "init" {
 		// Initalises the configuration file
-		config.InitializeConfig()
+		if err := config.InitializeConfig(); err != nil {
+			// Logs an error
+            log.Fatalf("Failed to initialize: %v", err)
+        }
+		// Returns nothing
 		return
 	}
+
+	// Loads in the configuration
+	cfg, err := config.LoadConfig()
+
+	// CHecks for an error
+	if err != nil {
+        log.Printf("[!] Warning: Could not load config file, using defaults: %v", err)
+        // Even if err occurs, cfg might have Viper defaults if handled in LoadConfig
+    }
 
 	/*
 		Flags for each function which the listner can carry out
@@ -189,23 +202,23 @@ func main(){
 	stageDirectoryOption := flag.NewFlagSet("stageDir", flag.ExitOnError)
 
 	// Stores the flags for this flagset
-	stageDirectoryPort := stageDirectoryOption.String("p", "8080", "Specifies the port number to host the server")
-	stageDirectoryDir := stageDirectoryOption.String("f", "payloads", "Specifies the file path of the staging directory")
+	stageDirectoryPort := stageDirectoryOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
+	stageDirectoryDir := stageDirectoryOption.String("f",  cfg.DefaultPayloadsDirectory, "Specifies the file path of the staging directory")
 	stageDirectorySource := stageDirectoryOption.String("s", "", "Specifies the file path of the source directory")
 
 	// Stores the flag set for uploading files
 	uploadFilesOption := flag.NewFlagSet("uploadFile", flag.ExitOnError)
 
 	// Stores the flags for this flagset
-	uploadFilesPort := stageDirectoryOption.String("p", "8080", "Specifies the port number to host the server")
-	uploadFilesUrlPath := stageDirectoryOption.String("u", "/upload", "Specifies the URL path to host the endpoint")
+	uploadFilesPort := stageDirectoryOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
+	uploadFilesUrlPath := stageDirectoryOption.String("u", cfg.DefaultURLPath, "Specifies the URL path to host the endpoint")
 
 	// Stores the flagset for the tunnel commands
 	tunnelOption := flag.NewFlagSet("tunnel", flag.ExitOnError)
 
 	// Stores the flags for the tunnel options choice
 	tunnelTarget := tunnelOption.String("u", "", "Specifies the target of the tunnel")
-	tunnelPort := tunnelOption.String("p", "8080", "Specifies the port number to host the server")
+	tunnelPort := tunnelOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
 
 
 	// Checks if the user has provided a subcommand
