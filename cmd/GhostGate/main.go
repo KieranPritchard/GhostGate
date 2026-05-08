@@ -286,6 +286,23 @@ func main(){
 		// Parses the flags
 		tunnelOption.Parse(os.Args[2:])
 
+		// Checks if the url is valid 
+		_, err := validation.ValidateURL(*tunnelTarget)
+
+		// Checks if there is errors
+		if err != nil{
+			fmt.Println(err)
+		} 
+
+		// Stores the result of the port validation
+		portNumberValid := validation.ValidatePort(*tunnelPort)
+
+		// Checks if the number is not valid
+		if !portNumberValid {
+			// Logs the error
+			log.Fatalf("Invalid port: %s", *tunnelPort)
+		}
+
 		// Handles the function for tunnel
 		http.HandleFunc("/", handleTunnel(*tunnelTarget))
 		// Outputs information about whats going on
