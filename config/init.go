@@ -63,8 +63,8 @@ func InitializeConfig() error {
 
 	// 4. Save to Viper
 	viper.Set("default_port", portNumber)
-	viper.Set("default_payloads_directory", uploadPath)
-	viper.Set("default_url_path", uploadPath)
+	viper.Set("default_payloads_path", payloadDir) // Was set to uploadPath in your snippet
+	viper.Set("default_uploads_path", uploadPath)
 
 	// 5. Write to file
 	if err := viper.WriteConfigAs(configPath); err != nil {
