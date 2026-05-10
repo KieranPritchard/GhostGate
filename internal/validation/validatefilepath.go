@@ -2,7 +2,6 @@ package validation
 
 import (
 	"log"
-	"path/filepath"
 	"regexp"
 )
 
@@ -18,9 +17,6 @@ func ValidateFilePath(filePath string) (string, bool){
 		return "", false
 	}
 
-	// Cleans the filepath
-	cleanPath := filepath.Clean(filePath)
-	
 	// Checks if the file path contains letters
 	match, _ := regexp.MatchString(`[[:alpha:]]`, filePath)
 
@@ -35,5 +31,5 @@ func ValidateFilePath(filePath string) (string, bool){
 	}
 
 	// Returns the data
-	return cleanPath, true
+	return filePath, true
 }
