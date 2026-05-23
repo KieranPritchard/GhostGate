@@ -3,6 +3,7 @@ package main
 import (
 	"GhostGate/config"
 	"GhostGate/internal/essentail"
+	"GhostGate/internal/sanitation"
 	"GhostGate/internal/validation"
 	"flag"
 	"fmt"
@@ -73,8 +74,11 @@ func main(){
 		// Parse the flags starting from the 3rd argument (index 2)
 		stageDirectoryOption.Parse(os.Args[2:])
 
+		// Cleans the file path
+		cleanPort := sanitation.CleanPort(*stageDirectoryPort)
+
 		// Stores the result of the port validation
-		portNumberValid := validation.ValidatePort(*stageDirectoryPort)
+		portNumberValid := validation.ValidatePort(cleanPort)
 
 		// Checks if the number is not valid
 		if !portNumberValid {
@@ -82,8 +86,11 @@ func main(){
 			log.Fatalf("Invalid port: %s", *stageDirectoryPort)
 		}
 
+		// Sanitises the file path
+		cleanPath := sanitation.CleanFilePath(*stageDirectoryDir)
+
 		// Stores the result and cleaned version of the validate port
-		cleanDir, dirValid := validation.ValidateFilePath(*stageDirectoryDir)
+		cleanDir, dirValid := validation.ValidateFilePath(cleanPath)
 
 		// Checks if the directory is not valid
 		if !dirValid {
@@ -105,8 +112,11 @@ func main(){
 		// Parse the flags
 		uploadFilesOption.Parse(os.Args[2:])
 
+		// Cleans the port number
+		cleanPort := sanitation.CleanPort(*uploadFilesPort)
+
 		// Stores the result of the port validation
-		portNumberValid := validation.ValidatePort(*uploadFilesPort)
+		portNumberValid := validation.ValidatePort(cleanPort)
 
 		// Checks if the number is not valid
 		if !portNumberValid {
@@ -145,8 +155,11 @@ func main(){
 			fmt.Println(err)
 		} 
 
+		// Cleans the port number
+		cleanPort := sanitation.CleanPort(*tunnelPort)
+
 		// Stores the result of the port validation
-		portNumberValid := validation.ValidatePort(*tunnelPort)
+		portNumberValid := validation.ValidatePort(cleanPort)
 
 		// Checks if the number is not valid
 		if !portNumberValid {
