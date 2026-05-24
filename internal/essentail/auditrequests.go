@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/html"
 	"io"
 	"net/http"
 	"strings"
@@ -98,4 +99,94 @@ func formatStatus(status string) string {
 	}
 	// Returns the colour
 	return ColorYellow + status + ColorReset
+}
+
+// PrettyPrintHTML takes a raw HTML string and returns a cleanly indented version
+func prettyPrintHTML(htmlStr string) string {
+	// Creates a new buffer
+	var buf bytes.Buffer
+
+	// Reads in the dom
+	dom := html.NewTokenizer(strings.NewReader(htmlStr))
+	
+	// Tracks the indent
+	indent := 0
+
+	// Helper to write spaces for indentation
+	writeIndent := func(level int) {
+		// Loops over each of the levels
+		for i := 0; i < level; i++ {
+			buf.WriteString("  ") // 2 spaces per indent level
+		}
+	}
+
+	// Infinately loops
+	for {
+		// Creates a new dom token type
+		tokenType := dom.Next()
+
+		// Checks if the token type is an error
+		if tokenType == html.ErrorToken {
+			// Checks if the dom is an error and end of file and breaks
+			if dom.Err() == io.EOF {
+				break
+			}
+			return htmlStr // Return raw HTML if parsing fails entirely
+		}
+
+		// Creates another token
+		token := dom.Token()
+
+		// Checks the token type
+		switch tokenType {
+			// Checks if there is a start tag 
+			case html.StartTagToken:
+				// Don't indent if it's inline text structural tagging
+				writeIndent(indent)
+
+				// Strings the token and a new line to the buffer
+				buf.WriteString(token.String() + "\n")
+				// Self-closing tags (like <img/> or <input>) shouldn't increase indentation
+				if !isSelfClosing(token.Data) {
+					indent++
+				}
+			
+			// Checks for end tag tokens
+			case html.EndTagToken:
+				// Lowers the input
+				indent--
+
+				// Writes the indent
+				writeIndent(indent)
+				buf.WriteString(token.String() + "\n")
+			
+			// Checks for self closing tags
+			case html.SelfClosingTagToken:
+				writeIndent(indent)
+				buf.WriteString(token.String() + "\n")
+			
+			// Checks for the text
+			case html.TextToken:
+				text := strings.TrimSpace(token.Data)
+				if len(text) > 0 {
+					writeIndent(indent)
+					buf.WriteString(text + "\n")
+				}
+		}
+	}
+
+	// Returns a buffer
+	return buf.String()
+}
+
+// Quick check for common HTML tags that don't close traditionally
+func isSelfClosing(tag string) bool {
+	// Checks for the tag
+	switch tag {
+	case "meta", "link", "br", "hr", "img", "input":
+		// returns true
+		return true
+	}
+	// returns false
+	return false
 }
