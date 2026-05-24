@@ -77,8 +77,12 @@ func AuditRequest(response *http.Response){
 					// Fallback to raw if JSON parsing fails
 					fmt.Println(string(bodyBytes))
 				}
+			} else if strings.Contains(contentType, "text/html") {
+				// 🌟 HTML Indentation!
+				prettyHTML := prettyPrintHTML(string(bodyBytes))
+				fmt.Println(prettyHTML)
 			} else {
-				// It's HTML, Plain Text, etc.
+				// Plain text, binaries, images, etc.
 				fmt.Println(string(bodyBytes))
 			}
 		}
