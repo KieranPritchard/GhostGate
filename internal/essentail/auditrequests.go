@@ -7,6 +7,16 @@ import (
 	"time"
 )
 
+// ANSI Color Escape Codes for Terminal Text
+const (
+	ColorReset  = "\033[0m"
+	ColorRed    = "\033[31m"
+	ColorGreen  = "\033[32m"
+	ColorYellow = "\033[33m"
+	ColorBlue   = "\033[34m"
+	ColorCyan   = "\033[36m"
+)
+
 // AuditRequest connects to a HTTP servere and dumps the structure then terminates it
 func AuditRequest(response *http.Response){
 	// DumpResponse extracts the raw protocol bytes retuned by the target server.
