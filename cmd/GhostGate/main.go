@@ -50,8 +50,8 @@ func main(){
 	uploadFilesOption := flag.NewFlagSet("uploadFile", flag.ExitOnError)
 
 	// Stores the flags for this flagset
-	uploadFilesPort := stageDirectoryOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
-	uploadFilesUrlPath := stageDirectoryOption.String("u", cfg.DefaultURLPath, "Specifies the URL path to host the endpoint")
+	uploadFilesPort := uploadFilesOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
+	uploadFilesUrlPath := uploadFilesOption.String("u", cfg.DefaultURLPath, "Specifies the URL path to host the endpoint")
 
 	// Stores the flagset for the tunnel commands
 	tunnelOption := flag.NewFlagSet("tunnel", flag.ExitOnError)
