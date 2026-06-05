@@ -19,7 +19,13 @@ func UploadHandler(writer http.ResponseWriter, reader *http.Request) {
 
 	// Creates a directory to store the data send to the server
 	exfilDir := "./exfiltrated_data"
-	os.MkdirAll(exfilDir, os.ModePerm)
+	
+	// Tries to create the the directory to store the files
+	if err := os.MkdirAll(exfilDir, 0755); err != nil {
+		log.Printf("[-] Failed to create storage directory: %v", err)
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	// Retrieves a filename from a custom header if not uses a default
 	filename := reader.Header.Get("X-File-Name")
@@ -28,36 +34,38 @@ func UploadHandler(writer http.ResponseWriter, reader *http.Request) {
 	if filename == "" {
 		// Creates the new file name
 		filename = "exfil_data.bin"
+	} else {
+		// Creates the clean file name
+		filename = filepath.Base(filename)
 	}
 
 	// Creates the destination path
 	dstPath := filepath.Join(exfilDir, filename)
 
-	// Creates the file and gets the error
-	dst, err := os.Create(dstPath)
-
-	// Checks for errors
+	// Create the destination file
+	dst, err := os.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	
+	// Checks for and logs errors
 	if err != nil {
-		// Returns an http header
+		log.Printf("[-] Failed to create file %s: %v", dstPath, err)
 		http.Error(writer, "Failed to create destination file", http.StatusInternalServerError)
 		return
 	}
-
-	// Closes the path when done
+	// the file descriptor is closes when the HTTP handler function returns
 	defer dst.Close()
 
-	// Stream the body directly to disk to handle large "exfiltrations" efficiently
+	// Streams the request body directly to disk
 	bytesCopied, err := io.Copy(dst, reader.Body)
-
-	// Checks for an error
+	
+	// Checks for and logs the errors
 	if err != nil {
-		// Logs the error
-		log.Printf("[!] Error during exfiltration from %s: %v", reader.RemoteAddr, err)
+		log.Printf("[!] Error during data transfer from %s: %v", reader.RemoteAddr, err)
+		http.Error(writer, "Error saving file data", http.StatusInternalServerError)
 		return
 	}
 
-	// Outputs a success message 
-	log.Printf("[+] Exfiltration Successful: %d bytes received from %s saved as %s", bytesCopied, reader.RemoteAddr, filename)
-	// Writes the header
+	// Logs success status
+	log.Printf("[+] Data Transfer Successful: %d bytes received from %s saved as %s", bytesCopied, reader.RemoteAddr, filename)
+	// Sends back an created status
 	writer.WriteHeader(http.StatusCreated)
 }
