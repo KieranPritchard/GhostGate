@@ -35,38 +35,34 @@ func main(){
         // Even if err occurs, cfg might have Viper defaults if handled in LoadConfig
     }
 
-	/*
-		Flags for each function which the listner can carry out
-	*/
+	// ---------------------------------------------------------
+	// Flag Sets Definitions (Standardized Names & Flags)
+	// ---------------------------------------------------------
 
-	// Stores the flag set for setting up a payload staging directory
-	stageDirectoryOption := flag.NewFlagSet("stageDir", flag.ExitOnError)
+	// Command: ghostgate stage
+	stageCmd := flag.NewFlagSet("stage", flag.ExitOnError)
+	stagePort := stageCmd.String("p", cfg.DefaultPort, "Port number to host the staging server")
+	stageDir := stageCmd.String("d", cfg.DefaultPayloadsDirectory, "Directory path of the staging files")
+	stageSource := stageCmd.String("s", "", "Source directory path containing payloads")
 
-	// Stores the flags for this flagset
-	stageDirectoryPort := stageDirectoryOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
-	stageDirectoryDir := stageDirectoryOption.String("f",  cfg.DefaultPayloadsDirectory, "Specifies the file path of the staging directory")
-	stageDirectorySource := stageDirectoryOption.String("s", "", "Specifies the file path of the source directory")
+	// Command: ghostgate upload
+	uploadCmd := flag.NewFlagSet("upload", flag.ExitOnError)
+	uploadPort := uploadCmd.String("p", cfg.DefaultPort, "Port number to host the upload server")
+	uploadPath := uploadCmd.String("u", cfg.DefaultURLPath, "URL endpoint path for uploads")
+	uploadDest := uploadCmd.String("d", "uploads", "Destination folder to store uploaded files")
 
-	// Stores the flag set for uploading files
-	uploadFilesOption := flag.NewFlagSet("uploadFile", flag.ExitOnError)
+	// Command: ghostgate tunnel
+	tunnelCmd := flag.NewFlagSet("tunnel", flag.ExitOnError)
+	tunnelPort := tunnelCmd.String("p", cfg.DefaultPort, "Port number to host the local tunnel proxy")
+	tunnelTarget := tunnelCmd.String("u", "", "Target URL/endpoint to forward traffic to")
 
-	// Stores the flags for this flagset
-	uploadFilesPort := uploadFilesOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
-	uploadFilesUrlPath := uploadFilesOption.String("u", cfg.DefaultURLPath, "Specifies the URL path to host the endpoint")
-	uploadFilesExfilPath := uploadFilesOption.String("d", "uploads", "Specifies the folder name to send the files")
+	// Command: ghostgate audit
+	auditCmd := flag.NewFlagSet("audit", flag.ExitOnError)
+	auditTarget := auditCmd.String("u", "", "Target URL/endpoint to perform the audit against")
 
-	// Stores the flagset for the tunnel commands
-	tunnelOption := flag.NewFlagSet("tunnel", flag.ExitOnError)
-
-	// Stores the flags for the tunnel options choice
-	tunnelTarget := tunnelOption.String("u", "", "Specifies the target of the tunnel")
-	tunnelPort := tunnelOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
-
-	// Stores the flagset for the tunnel commands
-	auditOption := flag.NewFlagSet("auditCon", flag.ExitOnError)
-
-	// Stores the flag for the function
-	auditTarget := auditOption.String("u", "", "Specifies the URL to target")
+	// Check if the user provided a subcommand
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: ghostgate <command> [flags]\n\nAvailable commands:\n  init      Initialize configuration\n  stage     Host a payload staging directory\n  upload    Start a data exfiltration listener\n  tunnel    Start a local pivot/tunnel proxy\n  audit     Run a configuration audit against a target")
 
 
 	// Checks if the user has provided a subcommand
@@ -79,7 +75,7 @@ func main(){
 
 	// Switch to select the command to be used
 	switch os.Args[1] {
-		case "stageDir":
+		case "stage":
 			// Parse the flags starting from the 3rd argument (index 2)
 			stageDirectoryOption.Parse(os.Args[2:])
 
@@ -117,7 +113,7 @@ func main(){
 
 			// Passes the flags into the function
 			essentail.StagePayloadDirectory(*stageDirectoryPort, cleanDir, cleanSource)
-		case "uploadFile":
+		case "upload":
 			// Parse the flags
 			uploadFilesOption.Parse(os.Args[2:])
 
@@ -188,7 +184,7 @@ func main(){
 			// Outputs a fatal log
 			log.Fatal(http.ListenAndServe(":"+*tunnelPort, nil))
 		
-		case "auditCon":
+		case "audit":
 			// Parses the flag
 			auditOption.Parse(os.Args[2:])
 

