@@ -53,6 +53,7 @@ func main(){
 	// Stores the flags for this flagset
 	uploadFilesPort := uploadFilesOption.String("p", cfg.DefaultPort, "Specifies the port number to host the server")
 	uploadFilesUrlPath := uploadFilesOption.String("u", cfg.DefaultURLPath, "Specifies the URL path to host the endpoint")
+	uploadFilesExfilPath := uploadFilesOption.String("d", "uploads", "Specifies the folder name to send the files")
 
 	// Stores the flagset for the tunnel commands
 	tunnelOption := flag.NewFlagSet("tunnel", flag.ExitOnError)
@@ -141,7 +142,7 @@ func main(){
 			} 
 
 			// Handles the function
-			http.HandleFunc(*uploadFilesUrlPath, essentail.UploadHandler)
+			http.HandleFunc(*uploadFilesUrlPath, essentail.UploadHandler(*uploadFilesExfilPath))
 
 			// Prints information about the path
 			fmt.Printf("[*] Data Exfiltration Listener active on port %s", *uploadFilesPort)
