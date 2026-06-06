@@ -6,10 +6,10 @@ GhostGate is a versatile Go-based networking toolkit designed for penetration te
 
 ## Features
 
-* **Payload Staging (`stageDir`):** Instantly host and stage payloads from a source directory to a designated target staging path.
-* **Data Exfiltration Listener (`uploadFile`):** Set up an HTTP POST endpoint to securely receive exfiltrated files from target machines.
+* **Payload Staging (`stage`):** Instantly host and stage payloads from a source directory to a designated target staging path.
+* **Data Exfiltration Listener (`upload`):** Set up an HTTP POST endpoint to securely receive exfiltrated files from target machines.
 * **Pivot Tunneling (`tunnel`):** Spin up a reverse proxy/tunnel server to pivot traffic through a compromised or intermediary host.
-* **Configuration Auditing (`auditCon`):** Run an active security header and configuration audit against a target URL with automated analysis.
+* **Configuration Auditing (`audit`):** Run an active security header and configuration audit against a target URL with automated analysis.
 * **Built-in Sanitation & Validation:** Automatically validates and sanitizes input ports, URLs, and file paths to prevent structural breaks during runtime.
 
 ---
@@ -39,7 +39,7 @@ go run main.go init
 
 GhostGate utilizes a subcommand-based CLI architecture. Run the tool using one of the primary modules detailed below:
 
-### 1. Payload Staging (`stageDir`)
+### 1. Payload Staging (`stage`)
 
 Hosts a local directory containing tools or payloads.
 
@@ -51,10 +51,10 @@ go run main.go stageDir -p <port> -f <staging_path> -s <source_path>
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-p` | `cfg.DefaultPort` | The port number to host the staging server on. |
-| `-f` | `cfg.DefaultPayloadsDirectory` | The destination path of the staging directory. |
+| `-d` | `cfg.DefaultPayloadsDirectory` | The destination path of the staging directory. |
 | `-s` | *None (Required)* | The file path of your local source payloads directory. |
 
-### 2. Data Exfiltration Listener (`uploadFile`)
+### 2. Data Exfiltration Listener (`upload`)
 
 Launches an HTTP server specifically configured to receive raw binary files or text data via POST requests.
 
@@ -67,6 +67,7 @@ go run main.go uploadFile -p <port> -u <endpoint_path>
 | --- | --- | --- |
 | `-p` | `cfg.DefaultPort` | The port number to bind the exfiltration listener to. |
 | `-u` | `cfg.DefaultURLPath` | The URI endpoint where the listener accepts uploads (e.g., `/upload`). |
+| `-d` | "uploads" | Destination folder to store uploaded files. |
 
 **Testing Exfiltration:**
 You can test the listener from a target machine using `curl`:
