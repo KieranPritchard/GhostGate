@@ -83,7 +83,7 @@ func StagePayloadDirectory(port string, stagingDir string, sourceDir string) {
 	fmt.Printf("[*] Go Payload Staging Server running on port %s\n", port)
 	fmt.Printf("[*] Serving files from: %s\n", stagingDir)
 	// Adjusted path to accurately reflect how http.FileServer exposes the folder root
-	fmt.Printf("[*] Target download example: curl http://%s:%s/%sn", networking.GetOutboundIP(), port, sampleFile)
+	fmt.Printf("[*] Target download example: curl http://%s:%s/%s\n", networking.GetOutboundIP(), port, sampleFile)
 
 	// Start the server inside a background goroutine so it doesn't block the signals
 	go func() {
