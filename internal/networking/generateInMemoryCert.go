@@ -11,60 +11,61 @@ import (
 	"time"
 )
 
-// Creates a temporary self-signed tls certificate stored entirely in memory
+// GenerateInMemoryCert creates a temporary self-signed TLS certificate and private key,
+// stored entirely in memory as PEM-encoded bytes.
 func GenerateInMemoryCert() ([]byte, []byte, error) {
-	// Generates a private rsa key
+	// Generate a 2048-bit RSA private key
 	private, err := rsa.GenerateKey(rand.Reader, 2048)
-
-	// CHecks if an error occured with the key generation
 	if err != nil {
-		// Returns the nil errors
 		return nil, nil, err
 	}
 
-	// Stores the timing for the certificate
+	// Certificate validity window
 	notBefore := time.Now()
-	notAfter := notBefore.Add(365 * 24 * time.Hour) // Makes it valid for the year
+	notAfter := notBefore.Add(365 * 24 * time.Hour)
 
-	// Creates the serial number limit
+	// Generate a random serial number
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-
-	// Generates the serial number
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Stores the template for the certificate
+	// Collect IPs to add as Subject Alternative Names.
+	// Always include loopback; also add the machine's real outbound LAN IP
+	// so that clients connecting via the local network can complete the TLS handshake.
+	ipSANs := []net.IP{net.ParseIP("127.0.0.1")}
+	if lanIP := GetOutboundIP(); lanIP != nil {
+		ipSANs = append(ipSANs, lanIP)
+	}
+
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{"GhostGate Framework"},
 		},
 		NotBefore: notBefore,
-		NotAfter: notAfter,
-		KeyUsage: x509.KeyUsageDataEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		NotAfter:  notAfter,
+		// KeyUsageKeyEncipherment is correct for RSA TLS servers.
+		// KeyUsageDataEncipherment is for payload encryption, not TLS handshakes.
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("0.0.0.0")},
+		IPAddresses:           ipSANs,
 	}
 
-	// Creates the bytes to create the cert
-	derBytes , err := x509.CreateCertificate(rand.Reader, &template, &template, &private.PublicKey, private)
-
-	// Returns the errors to the main
+	// Sign the certificate with its own private key (self-signed)
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &private.PublicKey, private)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// PEM encode the certificate
+	// PEM-encode the certificate
 	certPem := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 
-	// PEM encode the private key
+	// PEM-encode the private key
 	privBytes := x509.MarshalPKCS1PrivateKey(private)
 	keyPem := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: privBytes})
 
-	// Returns the keys
 	return certPem, keyPem, nil
 }

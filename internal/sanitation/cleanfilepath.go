@@ -5,14 +5,13 @@ import (
 	"strings"
 )
 
-// Function to clean file paths
-func CleanFilePath(filePath string) string{
-	// Trims the filepath of white space
-	trimmedPath := strings.Trim(filePath, "")
-	
-	// Cleans the filepath
+// CleanFilePath trims leading/trailing whitespace and resolves the filepath.
+func CleanFilePath(filePath string) string {
+	// Trim whitespace from the filepath
+	trimmedPath := strings.TrimSpace(filePath)
+
+	// Lexically clean the filepath
 	cleanPath := filepath.Clean(trimmedPath)
 
-	// Returns the filepath
 	return cleanPath
 }
