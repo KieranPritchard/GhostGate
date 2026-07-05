@@ -1,4 +1,4 @@
-package essentail
+package commands
 
 import (
 	"GhostGate/internal/networking"

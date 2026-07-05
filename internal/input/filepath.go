@@ -1,13 +1,19 @@
-package validation
+package input
 
 import (
+	"path/filepath"
 	"regexp"
+	"strings"
 )
+
+// CleanFilePath trims leading/trailing whitespace and lexically cleans the path.
+func CleanFilePath(path string) string {
+	return filepath.Clean(strings.TrimSpace(path))
+}
 
 // ValidateFilePath checks that filePath is non-empty and contains at least one letter.
 // Returns the path and true on success, or an empty string and false on failure.
 func ValidateFilePath(filePath string) (string, bool) {
-	// Reject empty paths
 	if filePath == "" {
 		return "", false
 	}

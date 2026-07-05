@@ -35,7 +35,7 @@ func GenerateInMemoryCert() ([]byte, []byte, error) {
 	// Always include loopback; also add the machine's real outbound LAN IP
 	// so that clients connecting via the local network can complete the TLS handshake.
 	ipSANs := []net.IP{net.ParseIP("127.0.0.1")}
-	if lanIP := GetOutboundIP(); lanIP != nil {
+	if lanIP := GetOutboundIP(); len(lanIP) > 0 {
 		ipSANs = append(ipSANs, lanIP)
 	}
 

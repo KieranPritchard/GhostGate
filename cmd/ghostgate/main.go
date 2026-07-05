@@ -2,10 +2,9 @@ package main
 
 import (
 	"GhostGate/config"
-	"GhostGate/internal/essentail"
+	"GhostGate/internal/commands"
+	"GhostGate/internal/input"
 	"GhostGate/internal/networking"
-	"GhostGate/internal/sanitation"
-	"GhostGate/internal/validation"
 	"flag"
 	"fmt"
 	"log"
@@ -73,13 +72,13 @@ func main() {
 	case "stage":
 		stageCmd.Parse(os.Args[2:])
 
-		cleanPort := sanitation.CleanPort(*stagePort)
-		if !validation.ValidatePort(cleanPort) {
+		cleanPort := input.CleanPort(*stagePort)
+		if !input.ValidatePort(cleanPort) {
 			log.Fatalf("[!] Invalid port: %s", *stagePort)
 		}
 
-		cleanPath := sanitation.CleanFilePath(*stageDir)
-		cleanDir, dirValid := validation.ValidateFilePath(cleanPath)
+		cleanPath := input.CleanFilePath(*stageDir)
+		cleanDir, dirValid := input.ValidateFilePath(cleanPath)
 		if !dirValid {
 			log.Fatalf("[!] Invalid staging directory: %s", *stageDir)
 		}
@@ -88,46 +87,46 @@ func main() {
 		cleanSource := ""
 		if *stageSource != "" {
 			var sourceValid bool
-			cleanSource, sourceValid = validation.ValidateFilePath(sanitation.CleanFilePath(*stageSource))
+			cleanSource, sourceValid = input.ValidateFilePath(input.CleanFilePath(*stageSource))
 			if !sourceValid {
 				log.Fatalf("[!] Invalid source directory: %s", *stageSource)
 			}
 		}
 
-		essentail.StagePayloadDirectory(cleanPort, cleanDir, cleanSource, *stageUseTLS, *stageCertFile, *stageKeyFile)
+		commands.StagePayloadDirectory(cleanPort, cleanDir, cleanSource, *stageUseTLS, *stageCertFile, *stageKeyFile)
 
 	case "upload":
 		uploadCmd.Parse(os.Args[2:])
 
-		cleanPort := sanitation.CleanPort(*uploadPort)
-		if !validation.ValidatePort(cleanPort) {
+		cleanPort := input.CleanPort(*uploadPort)
+		if !input.ValidatePort(cleanPort) {
 			log.Fatalf("[!] Invalid port: %s", *uploadPort)
 		}
 
-		if _, err := validation.ValidateURL(*uploadPath); err != nil {
+		if _, err := input.ValidateURL(*uploadPath); err != nil {
 			log.Fatalf("[!] Invalid upload path: %v", err)
 		}
 
-		essentail.StartUploadServer(cleanPort, *uploadPath, *uploadDest, *uploadUseTLS, *uploadCertFile, *uploadKeyFile)
+		commands.StartUploadServer(cleanPort, *uploadPath, *uploadDest, *uploadUseTLS, *uploadCertFile, *uploadKeyFile)
 
 	case "tunnel":
 		tunnelCmd.Parse(os.Args[2:])
 
-		if _, err := validation.ValidateURL(*tunnelTarget); err != nil {
+		if _, err := input.ValidateURL(*tunnelTarget); err != nil {
 			log.Fatalf("[!] Invalid tunnel target URL: %v", err)
 		}
 
-		cleanPort := sanitation.CleanPort(*tunnelPort)
-		if !validation.ValidatePort(cleanPort) {
+		cleanPort := input.CleanPort(*tunnelPort)
+		if !input.ValidatePort(cleanPort) {
 			log.Fatalf("[!] Invalid port: %s", *tunnelPort)
 		}
 
-		essentail.StartTunnelServer(cleanPort, *tunnelTarget, *tunnelUseTLS, *tunnelCertFile, *tunnelKeyFile)
+		commands.StartTunnelServer(cleanPort, *tunnelTarget, *tunnelUseTLS, *tunnelCertFile, *tunnelKeyFile)
 
 	case "audit":
 		auditCmd.Parse(os.Args[2:])
 
-		if _, err := validation.ValidateURL(*auditTarget); err != nil {
+		if _, err := input.ValidateURL(*auditTarget); err != nil {
 			log.Fatalf("[!] Invalid audit target URL: %v", err)
 		}
 
@@ -143,7 +142,7 @@ func main() {
 		}
 		defer resp.Body.Close()
 
-		essentail.AuditRequest(resp)
+		commands.AuditRequest(resp)
 
 	default:
 		fmt.Printf("[!] Unknown command: %s\n", os.Args[1])
