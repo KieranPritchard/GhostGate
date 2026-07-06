@@ -48,6 +48,13 @@ func InitializeConfig() error {
 		payloadDir = "payloads"
 	}
 
+	fmt.Print("Enter your default uploads directory [uploads]: ")
+	uploadDir, _ := reader.ReadString('\n')
+	uploadDir = strings.TrimSpace(uploadDir)
+	if uploadDir == "" {
+		uploadDir = "uploads"
+	}
+
 	fmt.Print("Enter your upload URL path [/uploads]: ")
 	uploadPath, _ := reader.ReadString('\n')
 	uploadPath = strings.TrimSpace(uploadPath)
@@ -55,10 +62,31 @@ func InitializeConfig() error {
 		uploadPath = "/uploads"
 	}
 
+	fmt.Print("Enable TLS by default? (y/N): ")
+	tlsInput, _ := reader.ReadString('\n')
+	tlsEnabled := strings.ToLower(strings.TrimSpace(tlsInput)) == "y"
+
+	var certFile, keyFile string
+	if tlsEnabled {
+		fmt.Print("Enter path to default TLS certificate file (leave empty for auto-generated): ")
+		certFile, _ = reader.ReadString('\n')
+		certFile = strings.TrimSpace(certFile)
+
+		if certFile != "" {
+			fmt.Print("Enter path to default TLS private key file: ")
+			keyFile, _ = reader.ReadString('\n')
+			keyFile = strings.TrimSpace(keyFile)
+		}
+	}
+
 	// Save values using the same keys defined in config.go and its struct tags
 	viper.Set("default_port", portNumber)
 	viper.Set("default_payloads_directory", payloadDir)
+	viper.Set("default_uploads_directory", uploadDir)
 	viper.Set("default_url_path", uploadPath)
+	viper.Set("default_tls_enabled", tlsEnabled)
+	viper.Set("default_tls_cert_file", certFile)
+	viper.Set("default_tls_key_file", keyFile)
 
 	// Write to disk
 	if err := viper.WriteConfigAs(configPath); err != nil {

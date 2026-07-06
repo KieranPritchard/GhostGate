@@ -37,26 +37,26 @@ func main() {
 	stagePort := stageCmd.String("p", cfg.DefaultPort, "Port number to host the staging server")
 	stageDir := stageCmd.String("d", cfg.DefaultPayloadsDirectory, "Directory path of the staging files")
 	stageSource := stageCmd.String("s", "", "Source directory path containing payloads (optional)")
-	stageUseTLS := stageCmd.Bool("tls", false, "Enable encrypted HTTPS staging server")
-	stageCertFile := stageCmd.String("cert", "", "Path to a custom TLS certificate file")
-	stageKeyFile := stageCmd.String("key", "", "Path to a custom TLS private key file")
+	stageUseTLS := stageCmd.Bool("tls", cfg.DefaultTLSEnabled, "Enable encrypted HTTPS staging server")
+	stageCertFile := stageCmd.String("cert", cfg.DefaultTLSCertFile, "Path to a custom TLS certificate file")
+	stageKeyFile := stageCmd.String("key", cfg.DefaultTLSKeyFile, "Path to a custom TLS private key file")
 
 	// ghostgate upload
 	uploadCmd := flag.NewFlagSet("upload", flag.ExitOnError)
 	uploadPort := uploadCmd.String("p", cfg.DefaultPort, "Port number to host the upload server")
 	uploadPath := uploadCmd.String("u", cfg.DefaultURLPath, "URL endpoint path for uploads")
-	uploadDest := uploadCmd.String("d", "uploads", "Destination folder to store uploaded files")
-	uploadUseTLS := uploadCmd.Bool("tls", false, "Enable encrypted HTTPS upload server")
-	uploadCertFile := uploadCmd.String("cert", "", "Path to a custom TLS certificate file")
-	uploadKeyFile := uploadCmd.String("key", "", "Path to a custom TLS private key file")
+	uploadDest := uploadCmd.String("d", cfg.DefaultUploadsDirectory, "Destination folder to store uploaded files")
+	uploadUseTLS := uploadCmd.Bool("tls", cfg.DefaultTLSEnabled, "Enable encrypted HTTPS upload server")
+	uploadCertFile := uploadCmd.String("cert", cfg.DefaultTLSCertFile, "Path to a custom TLS certificate file")
+	uploadKeyFile := uploadCmd.String("key", cfg.DefaultTLSKeyFile, "Path to a custom TLS private key file")
 
 	// ghostgate tunnel
 	tunnelCmd := flag.NewFlagSet("tunnel", flag.ExitOnError)
 	tunnelPort := tunnelCmd.String("p", cfg.DefaultPort, "Port number to host the local tunnel proxy")
 	tunnelTarget := tunnelCmd.String("u", "", "Target URL/endpoint to forward traffic to")
-	tunnelUseTLS := tunnelCmd.Bool("tls", false, "Enable encrypted HTTPS tunnel server")
-	tunnelCertFile := tunnelCmd.String("cert", "", "Path to a custom TLS certificate file")
-	tunnelKeyFile := tunnelCmd.String("key", "", "Path to a custom TLS private key file")
+	tunnelUseTLS := tunnelCmd.Bool("tls", cfg.DefaultTLSEnabled, "Enable encrypted HTTPS tunnel server")
+	tunnelCertFile := tunnelCmd.String("cert", cfg.DefaultTLSCertFile, "Path to a custom TLS certificate file")
+	tunnelKeyFile := tunnelCmd.String("key", cfg.DefaultTLSKeyFile, "Path to a custom TLS private key file")
 
 	// ghostgate audit
 	auditCmd := flag.NewFlagSet("audit", flag.ExitOnError)
