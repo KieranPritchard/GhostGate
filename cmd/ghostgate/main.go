@@ -4,7 +4,9 @@ import (
 	"GhostGate/config"
 	"GhostGate/internal/commands"
 	"GhostGate/internal/input"
+	"GhostGate/internal/logger"
 	"GhostGate/internal/networking"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -14,19 +16,57 @@ import (
 )
 
 func main() {
+	// Creates a new context
+	ctx := context.Background()
+
+	// Creates a log file
+	logFile, err := os.OpenFile("ghostgate.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
+
+	// Creates a new logger
+	logger.New(logger.Config{
+		Level: "INFO",
+		Format: logger.FormatJSON,
+		AddSource: true,
+		Output: logFile,
+	})
+
+	// Logs the app has started
+	logger.Info(ctx, "service starting")
 
 	// Handle the "init" subcommand before anything else
 	if len(os.Args) > 1 && os.Args[1] == "init" {
+		// Logs that the initaliseion has started
+		logger.Info(ctx, "initalisation starting")
+		
 		if err := config.InitializeConfig(); err != nil {
-			log.Fatalf("Failed to initialize: %v", err)
+			// Outputs the initalsation has failed
+			fmt.Printf("Failed to initialize: %v\n", err)
+
+			// Logs the init command has failed
+			logger.Error(ctx, "Initialization failed", err)
 		}
+		
+		// Logs the inistalsation has finished
+		logger.Info(ctx, "initalisation finished")
 		return
 	}
 
 	// Load the configuration file (falls back to built-in defaults on error)
 	cfg, err := config.LoadConfig()
+
+	// Logs the config is being loaded
+	logger.Info(ctx, "Config is being loaded")
+
 	if err != nil {
-		log.Printf("[!] Warning: Could not load config file, using defaults: %v", err)
+		// Outputs the config file could not be loaded
+		fmt.Printf("[!] Warning: Could not load config file, using defaults: %v", err)
+
+		// Logs the config file could not be loaded
+		logger.Error(ctx, "Could not load config file, using defaults")
 	}
 
 	// ---------------------------------------------------------
@@ -71,11 +111,21 @@ func main() {
 
 	switch os.Args[1] {
 	case "stage":
+		// Logs the commands are being parsed
+		logger.Info(ctx, "Parsing commands for 'stage'")
+
+		// Parses the stage command arguements
 		stageCmd.Parse(os.Args[2:])
 
+		// Logs the ports are being cleaned
+		
+
+		// Cleans the port number
 		cleanPort := input.CleanPort(*stagePort)
+
+		// Validates the port number
 		if !input.ValidatePort(cleanPort) {
-			log.Fatalf("[!] Invalid port: %s", *stagePort)
+			fmt.Printf("[!] Invalid port: %s", *stagePort)
 		}
 
 		cleanPath := input.CleanFilePath(*stageDir)
