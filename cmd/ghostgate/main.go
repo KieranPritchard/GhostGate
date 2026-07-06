@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+
 	// Handle the "init" subcommand before anything else
 	if len(os.Args) > 1 && os.Args[1] == "init" {
 		if err := config.InitializeConfig(); err != nil {
