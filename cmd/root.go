@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Defines the global commands
+var useTLS bool
+var certFile string
+var keyFile string
+
 // Defines the root command
 var rootCmd = &cobra.Command{
 	Use: "GhostGate",
@@ -30,3 +35,8 @@ func Execute() {
 }
 
 // Add global subcommands under init function
+func init() {
+	rootCmd.Flags().BoolVarP(&useTLS, "tls", "tls", false, "Specifies to use tls for connection")
+	rootCmd.Flags().StringVarP(&certFile, "cert-file", "c", "", "Specifies a path of a cert file")
+	rootCmd.Flags().StringVarP(&certFile, "key-file", "k", "", "Specifies a path of a key file")
+}

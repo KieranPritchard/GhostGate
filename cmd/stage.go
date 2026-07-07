@@ -14,9 +14,6 @@ import (
 var stagingPort string
 var directory string
 var source string
-var useTLS bool
-var certFile string
-var keyFile string
 
 var stageCmd = &cobra.Command{
 	Use: "stage",
@@ -102,9 +99,6 @@ func init() {
 	stageCmd.Flags().StringVarP(&stagingPort, "port", "p", "", "Port to run the service on")
 	stageCmd.Flags().StringVarP(&directory, "directory", "d", "", "Directory to host folder from")
 	stageCmd.Flags().StringVarP(&source, "source", "s", "", "Directory to get the hosted files from")
-	stageCmd.Flags().BoolVarP(&useTLS, "tls", "tls", false, "Specifies to use tls for connection")
-	stageCmd.Flags().StringVarP(&certFile, "cert-file", "c", "", "Specifies a path of a cert file")
-	stageCmd.Flags().StringVarP(&certFile, "key-file", "k", "", "Specifies a path of a key file")
 
 	// Adds the command to the root comamand
 	rootCmd.AddCommand(stageCmd)
