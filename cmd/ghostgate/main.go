@@ -118,77 +118,173 @@ func main() {
 		stageCmd.Parse(os.Args[2:])
 
 		// Logs the ports are being cleaned
-		
+		logger.Info(ctx, "Cleaning entered port", *stagePort)
 
 		// Cleans the port number
 		cleanPort := input.CleanPort(*stagePort)
 
+		// Logs the validation has started
+		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
+
 		// Validates the port number
 		if !input.ValidatePort(cleanPort) {
+			// Logs the port is invalid
+			logger.Error(ctx, "Validation failed on port", cleanPort)
+
+			// Outputs the port is invalid
 			fmt.Printf("[!] Invalid port: %s", *stagePort)
 		}
 
+		// Logs the file path is being cleaned
+		logger.Info(ctx, "Cleaning path for stage directory", *stageDir)
+		
+		// Cleans the path for the staging directory
 		cleanPath := input.CleanFilePath(*stageDir)
+
+		// Logs the directory is being cleaned
+		logger.Info(ctx, "Validating the clean staging directory", cleanPath)
+
+		// Checks if the clean directory is valid
 		cleanDir, dirValid := input.ValidateFilePath(cleanPath)
 		if !dirValid {
-			log.Fatalf("[!] Invalid staging directory: %s", *stageDir)
+			// Logs the validation has failed
+			logger.Info(ctx, "Validation of the staging directory has failed", cleanPath)
+			
+			// Outputs the staging directory is invalid
+			fmt.Printf("[!] Invalid staging directory: %s", *stageDir)
 		}
 
 		// The source flag is optional — only validate it when the user provided a value
 		cleanSource := ""
+
+		// Checks if a stage source was entered
 		if *stageSource != "" {
+			// Stores if the source is valid
 			var sourceValid bool
+			
+			// Logs if the source directory is being validated
+			logger.Info(ctx, "Validating source directory for the staging", *stageSource)
+
+			// Validates the source path
 			cleanSource, sourceValid = input.ValidateFilePath(input.CleanFilePath(*stageSource))
 			if !sourceValid {
-				log.Fatalf("[!] Invalid source directory: %s", *stageSource)
+				// logs the source path is invalid
+				logger.Error(ctx, "Invalid source directory", *stageSource)
+
+				// Outputs the source is invalid
+				fmt.Printf("[!] Invalid source directory: %s", *stageSource)
 			}
 		}
 
+		// Runs the stage payload directory function
 		commands.StagePayloadDirectory(cleanPort, cleanDir, cleanSource, *stageUseTLS, *stageCertFile, *stageKeyFile)
 
 	case "upload":
-		uploadCmd.Parse(os.Args[2:])
+		// Logs the commands are being parsed
+		logger.Info(ctx, "Parsing commands for 'upload'")
 
+		// Parses the arguements for the upload command
+		uploadCmd.Parse(os.Args[2:])
+		
+		// Logs the ports are being cleaned
+		logger.Info(ctx, "Cleaning entered port", *uploadPort)
+		
+		// Cleans the port
 		cleanPort := input.CleanPort(*uploadPort)
+
+		// Logs the validation has started
+		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
+
+		// Validating the clean port
 		if !input.ValidatePort(cleanPort) {
-			log.Fatalf("[!] Invalid port: %s", *uploadPort)
+			// Logs the port is invalid
+			logger.Error(ctx, "Validation failed on port", cleanPort)
+			
+			// Prints the port is invalid
+			fmt.Printf("[!] Invalid port: %s", *uploadPort)
 		}
 
+		// Logs validation has started
+		logger.Info(ctx, "Validation has started on path", *uploadPath)
+
+		// CHecks if there is an error
 		if _, err := input.ValidateURL(*uploadPath); err != nil {
-			log.Fatalf("[!] Invalid upload path: %v", err)
+			// Logs the url is invalid
+			logger.Error(ctx, "Upload path is invalid", *uploadPath)
+
+			// Prints the path is invalid
+			fmt.Printf("[!] Invalid upload path: %v", err)
 		}
 
 		commands.StartUploadServer(cleanPort, *uploadPath, *uploadDest, *uploadUseTLS, *uploadCertFile, *uploadKeyFile)
 
 	case "tunnel":
+		// Logs the commands are being parsed
+		logger.Info(ctx, "Parsing commands for 'tunnel'")
+
+		// Parses the tunnel command
 		tunnelCmd.Parse(os.Args[2:])
 
+		// Logs validation has start
+		logger.Info(ctx, "Validation started on the url", *tunnelTarget)
+
+		// Check if there is an error
 		if _, err := input.ValidateURL(*tunnelTarget); err != nil {
-			log.Fatalf("[!] Invalid tunnel target URL: %v", err)
+			// Logs the validation has failed
+			logger.Error(ctx, "Validation failed on tunnel target", *tunnelTarget)
+			
+			// Outputs the target is invalid
+			fmt.Printf("[!] Invalid tunnel target URL: %v", err)
 		}
 
+		// Logs the port is being cleaned
+		logger.Info(ctx, "Cleaning has started on the port", *tunnelPort)
+
+		// Cleans the port entered
 		cleanPort := input.CleanPort(*tunnelPort)
 		if !input.ValidatePort(cleanPort) {
-			log.Fatalf("[!] Invalid port: %s", *tunnelPort)
+			// Logs the port is invalid
+			logger.Error(ctx, "Port is invalid", *tunnelPort)
+
+			// Ouputs the port is invalid
+			fmt.Printf("[!] Invalid port: %s", *tunnelPort)
 		}
 
 		commands.StartTunnelServer(cleanPort, *tunnelTarget, *tunnelUseTLS, *tunnelCertFile, *tunnelKeyFile)
 
 	case "audit":
+		// Logs the commands are being parsed
+		logger.Info(ctx, "Parsing commands for 'audit'")
+
+		// Parses the audit commands
 		auditCmd.Parse(os.Args[2:])
 
+		// Logs the url validation has started
+		logger.Info(ctx, "Starting validation on the url")
+		
+		// Checks if the url is valid
 		if _, err := input.ValidateURL(*auditTarget); err != nil {
-			log.Fatalf("[!] Invalid audit target URL: %v", err)
+			// Logs the url is incorrect
+			logger.Error(ctx, "Invalid url", *auditTarget)
+
+			// Outputs the url is incorrect
+			fmt.Printf("[!] Invalid audit target URL: %v", err)
 		}
 
+		// Prints the configuration is starting
 		fmt.Printf("[*] Launching configuration audit against: %s\n", *auditTarget)
 
+		// Creates a http client
 		client := &http.Client{
+			// Sets timeout to 10 seconds
 			Timeout: 10 * time.Second,
 		}
 
+		// Gets the response
 		resp, err := client.Get(*auditTarget)
 		if err != nil {
+			// Logs the response failed
+			logger.Error(ctx, "Connection failed", err)
 			log.Fatalf("[!] Connection failed: %v\n", err)
 		}
 		defer resp.Body.Close()
