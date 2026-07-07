@@ -11,7 +11,7 @@ import (
 )
 
 // Defines the variables for the subcommand
-var port string
+var stagingPort string
 var directory string
 var source string
 var useTLS bool
@@ -31,10 +31,10 @@ var stageCmd = &cobra.Command{
 		logger.Info(ctx, "Parsing commands for 'stage'")
 
 		// Logs the ports are being cleaned
-		logger.Info(ctx, "Cleaning entered port", port)
+		logger.Info(ctx, "Cleaning entered port", stagingPort)
 
 		// Cleans the port number
-		cleanPort := input.CleanPort(port)
+		cleanPort := input.CleanPort(stagingPort)
 
 		// Logs the validation has started
 		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
@@ -48,11 +48,11 @@ var stageCmd = &cobra.Command{
 			logger.Error(ctx, "Validation failed on port", cleanPort)
 
 			// Outputs the port is invalid
-			fmt.Printf("[!] Invalid port: %s\n", port)
+			fmt.Printf("[!] Invalid port: %s\n", stagingPort)
 		}
 
 		// Logs the file path is being cleaned
-		logger.Info(ctx, "Cleaning path for stage directory", port)
+		logger.Info(ctx, "Cleaning path for stage directory", stagingPort)
 		
 		// Cleans the path for the staging directory
 		cleanDir := input.CleanFilePath(directory)
@@ -99,7 +99,7 @@ var stageCmd = &cobra.Command{
 // Stores and uses the flags for this subcommand
 func init() {
 	// Specifies the flags
-	stageCmd.Flags().StringVarP(&port, "port", "p", "", "Port to run the service on")
+	stageCmd.Flags().StringVarP(&stagingPort, "port", "p", "", "Port to run the service on")
 	stageCmd.Flags().StringVarP(&directory, "directory", "d", "", "Directory to host folder from")
 	stageCmd.Flags().StringVarP(&source, "source", "s", "", "Directory to get the hosted files from")
 	stageCmd.Flags().BoolVarP(&useTLS, "tls", "tls", false, "Specifies to use tls for connection")
