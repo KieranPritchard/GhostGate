@@ -127,7 +127,10 @@ func main() {
 		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
 
 		// Validates the port number
-		if !input.ValidatePort(cleanPort) {
+		err := input.ValidatePort(cleanPort)
+
+		// Validates the port number
+		if err != nil{
 			// Logs the port is invalid
 			logger.Error(ctx, "Validation failed on port", cleanPort)
 
@@ -139,16 +142,17 @@ func main() {
 		logger.Info(ctx, "Cleaning path for stage directory", *stageDir)
 		
 		// Cleans the path for the staging directory
-		cleanPath := input.CleanFilePath(*stageDir)
+		cleanDir := input.CleanFilePath(*stageDir)
 
 		// Logs the directory is being cleaned
-		logger.Info(ctx, "Validating the clean staging directory", cleanPath)
+		logger.Info(ctx, "Validating the clean staging directory", cleanDir)
 
 		// Checks if the clean directory is valid
-		cleanDir, dirValid := input.ValidateFilePath(cleanPath)
-		if !dirValid {
+		err = input.ValidateFilePath(cleanDir)
+		
+		if err != nil {
 			// Logs the validation has failed
-			logger.Info(ctx, "Validation of the staging directory has failed", cleanPath)
+			logger.Info(ctx, "Validation of the staging directory has failed", cleanDir)
 			
 			// Outputs the staging directory is invalid
 			fmt.Printf("[!] Invalid staging directory: %s", *stageDir)
@@ -159,15 +163,13 @@ func main() {
 
 		// Checks if a stage source was entered
 		if *stageSource != "" {
-			// Stores if the source is valid
-			var sourceValid bool
 			
 			// Logs if the source directory is being validated
 			logger.Info(ctx, "Validating source directory for the staging", *stageSource)
 
 			// Validates the source path
-			cleanSource, sourceValid = input.ValidateFilePath(input.CleanFilePath(*stageSource))
-			if !sourceValid {
+			err = input.ValidateFilePath(input.CleanFilePath(*stageSource))
+			if err != nil {
 				// logs the source path is invalid
 				logger.Error(ctx, "Invalid source directory", *stageSource)
 
@@ -196,7 +198,8 @@ func main() {
 		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
 
 		// Validating the clean port
-		if !input.ValidatePort(cleanPort) {
+		err = input.ValidatePort(cleanPort)
+		if err != nil {
 			// Logs the port is invalid
 			logger.Error(ctx, "Validation failed on port", cleanPort)
 			
@@ -204,11 +207,15 @@ func main() {
 			fmt.Printf("[!] Invalid port: %s", *uploadPort)
 		}
 
+		// Cleans the uploaded file path
+		cleanURL := input.CleanURL(*uploadPath)
+
 		// Logs validation has started
 		logger.Info(ctx, "Validation has started on path", *uploadPath)
 
-		// CHecks if there is an error
-		if _, err := input.ValidateURL(*uploadPath); err != nil {
+		// Validates the url
+		err := input.ValidateURL(cleanURL)
+		if err != nil {
 			// Logs the url is invalid
 			logger.Error(ctx, "Upload path is invalid", *uploadPath)
 
@@ -225,11 +232,17 @@ func main() {
 		// Parses the tunnel command
 		tunnelCmd.Parse(os.Args[2:])
 
+		// Cleans the tunnel target
+		cleanURL := input.CleanURL(*tunnelTarget)
+
 		// Logs validation has start
-		logger.Info(ctx, "Validation started on the url", *tunnelTarget)
+		logger.Info(ctx, "Validation started on the url", cleanURL)
+
+		// Validates the url
+		err := input.ValidateURL(cleanURL)
 
 		// Check if there is an error
-		if _, err := input.ValidateURL(*tunnelTarget); err != nil {
+		if err != nil {
 			// Logs the validation has failed
 			logger.Error(ctx, "Validation failed on tunnel target", *tunnelTarget)
 			
@@ -242,7 +255,10 @@ func main() {
 
 		// Cleans the port entered
 		cleanPort := input.CleanPort(*tunnelPort)
-		if !input.ValidatePort(cleanPort) {
+
+		// Validates the path
+		err = input.ValidatePort(cleanPort)
+		if err != nil {
 			// Logs the port is invalid
 			logger.Error(ctx, "Port is invalid", *tunnelPort)
 
@@ -259,11 +275,17 @@ func main() {
 		// Parses the audit commands
 		auditCmd.Parse(os.Args[2:])
 
+		// Cleans the url
+		cleanTarget := input.CleanURL(*auditTarget)
+
 		// Logs the url validation has started
 		logger.Info(ctx, "Starting validation on the url")
+
+		// Validates the target
+		err := input.ValidateURL(cleanTarget)
 		
 		// Checks if the url is valid
-		if _, err := input.ValidateURL(*auditTarget); err != nil {
+		if err != nil {
 			// Logs the url is incorrect
 			logger.Error(ctx, "Invalid url", *auditTarget)
 
