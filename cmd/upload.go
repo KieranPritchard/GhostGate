@@ -16,8 +16,8 @@ var destination string
 
 // The upload command
 var uploadCmd = &cobra.Command{
-	Use: "GhostGate",
-	Long: "GhostGate is a versatile Go-based networking toolkit designed for penetration testing, red teaming, and security auditing. It simplifies the process of setting up payload staging environments, running data exfiltration handlers, establishing reverse/pivot tunnels, and conducting quick HTTP security configuration audits.",
+	Use: "upload",
+	Short: "Creates a URL which allows for the user upload files to",
 
 	Run: func (cmd *cobra.Command, args []string) {
 		// Creates a new context
