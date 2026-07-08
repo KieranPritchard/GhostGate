@@ -76,7 +76,7 @@ var uploadCmd = &cobra.Command{
 			fmt.Printf("[!] Invalid destination path: %v", err)
 		}
 
-		commands.StartUploadServer(cleanPort, cleanURL, cleanDest, useTLS, certFile, keyFile)
+		commands.StartUploadServer(cleanPort, cleanURL.String(), cleanDest, useTLS, certFile, keyFile)
 	},
 }
 
