@@ -11,6 +11,7 @@ import (
 var useTLS bool
 var certFile string
 var keyFile string
+var port string
 
 // Defines the root command
 var rootCmd = &cobra.Command{
@@ -36,6 +37,7 @@ func Execute() {
 
 // Add global subcommands under init function
 func init() {
+	stageCmd.Flags().StringVarP(&port, "port", "p", "", "Port to run the service on")
 	rootCmd.Flags().BoolVarP(&useTLS, "tls", "tls", false, "Specifies to use tls for connection")
 	rootCmd.Flags().StringVarP(&certFile, "cert-file", "c", "", "Specifies a path of a cert file")
 	rootCmd.Flags().StringVarP(&certFile, "key-file", "k", "", "Specifies a path of a key file")
