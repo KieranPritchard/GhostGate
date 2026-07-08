@@ -12,6 +12,7 @@ var useTLS bool
 var certFile string
 var keyFile string
 var port string
+var target string
 
 // Defines the root command
 var rootCmd = &cobra.Command{

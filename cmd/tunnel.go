@@ -10,9 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Variables for the command
-var target string
-
 // The tunnel command
 var tunnelCmd = &cobra.Command{
 	Use: "tunnel",
