@@ -64,7 +64,7 @@ var stageCmd = &cobra.Command{
 			logger.Info(ctx, "Validation of the staging directory has failed", cleanDir)
 			
 			// Outputs the staging directory is invalid
-			fmt.Printf("[!] Invalid staging directory: %s", directory)
+			fmt.Printf("[!] Invalid staging directory: %s\n", directory)
 		}
 
 		// The source flag is optional — only validate it when the user provided a value
@@ -83,7 +83,7 @@ var stageCmd = &cobra.Command{
 				logger.Error(ctx, "Invalid source directory", source)
 
 				// Outputs the source is invalid
-				fmt.Printf("[!] Invalid source directory: %s", source)
+				fmt.Printf("[!] Invalid source directory: %s\n", source)
 			}
 		}
 

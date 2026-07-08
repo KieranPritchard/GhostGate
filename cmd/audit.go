@@ -38,7 +38,7 @@ var auditCmd = &cobra.Command{
 			logger.Error(ctx, "Invalid url", target)
 
 			// Outputs the url is incorrect
-			fmt.Printf("[!] Invalid audit target URL: %v", err)
+			fmt.Printf("[!] Invalid audit target URL: %v\n", err)
 		}
 
 		// Prints the configuration is starting

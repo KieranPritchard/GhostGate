@@ -42,7 +42,7 @@ var uploadCmd = &cobra.Command{
 			logger.Error(ctx, "Validation failed on port", cleanPort)
 			
 			// Prints the port is invalid
-			fmt.Printf("[!] Invalid port: %s", port)
+			fmt.Printf("[!] Invalid port: %s\n", port)
 		}
 
 		// Cleans the uploaded file path
@@ -58,7 +58,7 @@ var uploadCmd = &cobra.Command{
 			logger.Error(ctx, "Upload path is invalid", path)
 
 			// Prints the path is invalid
-			fmt.Printf("[!] Invalid upload path: %v", err)
+			fmt.Printf("[!] Invalid upload path: %v\n", err)
 		}
 
 		// Logs the destination path is being cleaned
@@ -73,7 +73,7 @@ var uploadCmd = &cobra.Command{
 			// Logs and outputs the error
 			logger.Info(ctx, "Validation failed on file path", cleanDest)
 
-			fmt.Printf("[!] Invalid destination path: %v", err)
+			fmt.Printf("[!] Invalid destination path: %v\n", err)
 		}
 
 		commands.StartUploadServer(cleanPort, cleanURL.String(), cleanDest, useTLS, certFile, keyFile)

@@ -37,7 +37,7 @@ var tunnelCmd = &cobra.Command{
 			logger.Error(ctx, "Validation failed on tunnel target", target)
 			
 			// Outputs the target is invalid
-			fmt.Printf("[!] Invalid tunnel target URL: %v", err)
+			fmt.Printf("[!] Invalid tunnel target URL: %v\n", err)
 		}
 
 		// Logs the port is being cleaned
@@ -53,7 +53,7 @@ var tunnelCmd = &cobra.Command{
 			logger.Error(ctx, "Port is invalid", port)
 
 			// Ouputs the port is invalid
-			fmt.Printf("[!] Invalid port: %s", port)
+			fmt.Printf("[!] Invalid port: %s\n", port)
 		}
 
 		commands.StartTunnelServer(cleanPort, target, useTLS, certFile, keyFile)
