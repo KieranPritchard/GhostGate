@@ -51,7 +51,7 @@ trap cleanup EXIT
 
 # 1. Build the Binary
 echo "[*] Building GhostGate binary..."
-go build -o ghostgate_bin main.go
+go build -o ghostgate_bin .
 echo "[+] Binary built successfully."
 
 # 2. Test Help Functionality
