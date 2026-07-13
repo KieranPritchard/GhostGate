@@ -66,6 +66,8 @@ echo "[+] Help output tests passed."
 
 # 3. Test Interactive Init Subcommand
 echo "[*] Testing interactive config initialization..."
+# Remove any existing config so the overwrite prompt does not appear
+rm -f "$CONFIG_FILE"
 # Answer the prompts: Port: 9091, Staging Dir: test_staging_dir, Upload Dir: test_uploads, Exfil path: /test_exfil, TLS: n
 printf "9091\ntest_staging_dir\ntest_uploads\n/test_exfil\nn\n" | ./ghostgate_bin init > /dev/null
 
@@ -80,6 +82,7 @@ grep -q '"default_payloads_directory": "test_staging_dir"' "$CONFIG_FILE"
 grep -q '"default_uploads_directory": "test_uploads"' "$CONFIG_FILE"
 grep -q '"default_url_path": "/test_exfil"' "$CONFIG_FILE"
 grep -q '"default_tls_enabled": false' "$CONFIG_FILE"
+echo "  -> Config values verified correctly in $CONFIG_FILE"
 echo "[+] Interactive config initialization test passed."
 
 # Remove the config file created so fallback/default tests run cleanly
@@ -104,10 +107,10 @@ if [ $? -eq 0 ]; then
   exit 1
 fi
 
-# C. Invalid staging directory (empty)
-./ghostgate_bin stage -p 9091 -d "" 2>/dev/null
+# C. Invalid staging directory (only special characters - no alphabetical chars)
+./ghostgate_bin stage -p 9091 -d "123456" 2>/dev/null
 if [ $? -eq 0 ]; then
-  echo "[-] Fail: Managed to run stage with empty directory"
+  echo "[-] Fail: Managed to run stage with numeric-only directory"
   exit 1
 fi
 
