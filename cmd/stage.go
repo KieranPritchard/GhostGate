@@ -6,6 +6,7 @@ import (
 	"GhostGate/internal/logger"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -45,13 +46,24 @@ var stageCmd = &cobra.Command{
 
 			// Outputs the port is invalid
 			fmt.Printf("[!] Invalid port: %s\n", port)
+			os.Exit(1)
+		}
+
+		// Fallback to default staging directory if empty
+		targetDir := directory
+		if targetDir == "" {
+			if cfg != nil {
+				targetDir = cfg.DefaultPayloadsDirectory
+			} else {
+				targetDir = "payloads"
+			}
 		}
 
 		// Logs the file path is being cleaned
-		logger.Info(ctx, "Cleaning path for stage directory", port)
+		logger.Info(ctx, "Cleaning path for stage directory", targetDir)
 		
 		// Cleans the path for the staging directory
-		cleanDir := input.CleanFilePath(directory)
+		cleanDir := input.CleanFilePath(targetDir)
 
 		// Logs the directory is being cleaned
 		logger.Info(ctx, "Validating the clean staging directory", cleanDir)
@@ -64,7 +76,8 @@ var stageCmd = &cobra.Command{
 			logger.Info(ctx, "Validation of the staging directory has failed", cleanDir)
 			
 			// Outputs the staging directory is invalid
-			fmt.Printf("[!] Invalid staging directory: %s\n", directory)
+			fmt.Printf("[!] Invalid staging directory: %s\n", targetDir)
+			os.Exit(1)
 		}
 
 		// The source flag is optional — only validate it when the user provided a value
@@ -72,23 +85,25 @@ var stageCmd = &cobra.Command{
 
 		// Checks if a stage source was entered
 		if source != "" {
+			cleanSource = input.CleanFilePath(source)
 			
 			// Logs if the source directory is being validated
-			logger.Info(ctx, "Validating source directory for the staging", source)
+			logger.Info(ctx, "Validating source directory for the staging", cleanSource)
 
 			// Validates the source path
-			err = input.ValidateFilePath(input.CleanFilePath(source))
+			err = input.ValidateFilePath(cleanSource)
 			if err != nil {
 				// logs the source path is invalid
 				logger.Error(ctx, "Invalid source directory", source)
 
 				// Outputs the source is invalid
 				fmt.Printf("[!] Invalid source directory: %s\n", source)
+				os.Exit(1)
 			}
 		}
 
 		// Runs the stage payload directory function
-		commands.StagePayloadDirectory(port, cleanDir, cleanSource, useTLS, certFile, keyFile)
+		commands.StagePayloadDirectory(cleanPort, cleanDir, cleanSource, useTLS, certFile, keyFile)
 	},
 }
 

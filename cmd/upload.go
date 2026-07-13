@@ -6,6 +6,8 @@ import (
 	"GhostGate/internal/logger"
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +29,7 @@ var uploadCmd = &cobra.Command{
 		logger.Info(ctx, "Parsing commands for 'upload'")
 		
 		// Logs the ports are being cleaned
-		logger.Info(ctx, "Cleaning entered port", )
+		logger.Info(ctx, "Cleaning entered port", port)
 		
 		// Cleans the port
 		cleanPort := input.CleanPort(port)
@@ -43,29 +45,53 @@ var uploadCmd = &cobra.Command{
 			
 			// Prints the port is invalid
 			fmt.Printf("[!] Invalid port: %s\n", port)
+			os.Exit(1)
 		}
 
-		// Cleans the uploaded file path
-		cleanURL := input.CleanURL(path)
+		// Fallback to default url path if empty
+		targetPath := path
+		if targetPath == "" {
+			if cfg != nil {
+				targetPath = cfg.DefaultURLPath
+			} else {
+				targetPath = "/uploads"
+			}
+		}
+
+		// Cleans the uploaded URL path
+		cleanPath := strings.TrimSpace(targetPath)
+		if !strings.HasPrefix(cleanPath, "/") {
+			cleanPath = "/" + cleanPath
+		}
 
 		// Logs validation has started
-		logger.Info(ctx, "Validation has started on path", path)
+		logger.Info(ctx, "Validation has started on path", cleanPath)
 
-		// Validates the url
-		err = input.ValidateURL(cleanURL)
-		if err != nil {
-			// Logs the url is invalid
-			logger.Error(ctx, "Upload path is invalid", path)
+		// Validates the url path
+		if cleanPath == "/" || strings.ContainsAny(cleanPath, " ?#") {
+			// Logs the path is invalid
+			logger.Error(ctx, "Upload path is invalid", cleanPath)
 
 			// Prints the path is invalid
-			fmt.Printf("[!] Invalid upload path: %v\n", err)
+			fmt.Printf("[!] Invalid upload path: %s\n", cleanPath)
+			os.Exit(1)
+		}
+
+		// Fallback to default uploads directory if empty
+		targetDest := destination
+		if targetDest == "" {
+			if cfg != nil {
+				targetDest = cfg.DefaultUploadsDirectory
+			} else {
+				targetDest = "uploads"
+			}
 		}
 
 		// Logs the destination path is being cleaned
-		logger.Info(ctx, "Cleaning destination file path", destination)
+		logger.Info(ctx, "Cleaning destination file path", targetDest)
 
 		// Cleans the destination path
-		cleanDest := input.CleanFilePath(destination)
+		cleanDest := input.CleanFilePath(targetDest)
 
 		// Validates the file path
 		err = input.ValidateFilePath(cleanDest)
@@ -74,9 +100,10 @@ var uploadCmd = &cobra.Command{
 			logger.Info(ctx, "Validation failed on file path", cleanDest)
 
 			fmt.Printf("[!] Invalid destination path: %v\n", err)
+			os.Exit(1)
 		}
 
-		commands.StartUploadServer(cleanPort, cleanURL.String(), cleanDest, useTLS, certFile, keyFile)
+		commands.StartUploadServer(cleanPort, cleanPath, cleanDest, useTLS, certFile, keyFile)
 	},
 }
 

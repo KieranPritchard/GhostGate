@@ -6,6 +6,7 @@ import (
 	"GhostGate/internal/logger"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -25,6 +26,13 @@ var tunnelCmd = &cobra.Command{
 		// Cleans the tunnel target
 		cleanURL := input.CleanURL(target)
 
+		// Checks if the url is nil
+		if cleanURL == nil {
+			logger.Error(ctx, "Validation failed on tunnel target (could not parse)", target)
+			fmt.Printf("[!] Invalid tunnel target URL: could not parse URL %s\n", target)
+			os.Exit(1)
+		}
+
 		// Logs validation has start
 		logger.Info(ctx, "Validation started on the url", cleanURL)
 
@@ -38,6 +46,7 @@ var tunnelCmd = &cobra.Command{
 			
 			// Outputs the target is invalid
 			fmt.Printf("[!] Invalid tunnel target URL: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Logs the port is being cleaned
@@ -54,9 +63,10 @@ var tunnelCmd = &cobra.Command{
 
 			// Ouputs the port is invalid
 			fmt.Printf("[!] Invalid port: %s\n", port)
+			os.Exit(1)
 		}
 
-		commands.StartTunnelServer(cleanPort, target, useTLS, certFile, keyFile)
+		commands.StartTunnelServer(cleanPort, cleanURL.String(), useTLS, certFile, keyFile)
 	},
 }
 

