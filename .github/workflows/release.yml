@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'V*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # ── Validate before releasing ─────────────────────────────────────────────
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run tests
+        run: go test -race ./...
+
+      # ── Cross-compile binaries ────────────────────────────────────────────────
+
+      - name: Build binaries
+        run: |
+          mkdir -p dist
+
+          # Linux
+          GOOS=linux  GOARCH=amd64  go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/ghostgate_linux_amd64   .
+          GOOS=linux  GOARCH=arm64  go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/ghostgate_linux_arm64   .
+
+          # macOS
+          GOOS=darwin GOARCH=amd64  go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/ghostgate_darwin_amd64  .
+          GOOS=darwin GOARCH=arm64  go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/ghostgate_darwin_arm64  .
+
+          # Windows
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/ghostgate_windows_amd64.exe .
+
+          echo "Built binaries:"
+          ls -lh dist/
+
+      # ── Create GitHub Release ─────────────────────────────────────────────────
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GhostGate ${{ github.ref_name }}
+          body: |
+            ## GhostGate ${{ github.ref_name }}
+
+            ### Downloads
+
+            | Platform | Architecture | Binary |
+            |----------|-------------|--------|
+            | Linux    | amd64       | `ghostgate_linux_amd64` |
+            | Linux    | arm64       | `ghostgate_linux_arm64` |
+            | macOS    | amd64       | `ghostgate_darwin_amd64` |
+            | macOS    | arm64 (Apple Silicon) | `ghostgate_darwin_arm64` |
+            | Windows  | amd64       | `ghostgate_windows_amd64.exe` |
+
+            See the [README](https://github.com/${{ github.repository }}/blob/main/README.md) for usage instructions.
+          files: |
+            dist/ghostgate_linux_amd64
+            dist/ghostgate_linux_arm64
+            dist/ghostgate_darwin_amd64
+            dist/ghostgate_darwin_arm64
+            dist/ghostgate_windows_amd64.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') }}
+
