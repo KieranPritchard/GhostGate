@@ -16,13 +16,13 @@ func CleanFilePath(path string) string {
 // Returns the path and true on success, or an empty string and false on failure.
 func ValidateFilePath(filePath string) (error) {
 	if filePath == "" {
-		return errors.New("File path must not be empty")
+		return errors.New("file path must not be empty")
 	}
 
 	// Require at least one alphabetical character
 	match, _ := regexp.MatchString(`[[:alpha:]]`, filePath)
 	if !match {
-		return errors.New("File path does not match the expected format")
+		return errors.New("file path does not match the expected format")
 	}
 
 	return nil

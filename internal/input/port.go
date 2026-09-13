@@ -19,7 +19,7 @@ func ValidatePort(port string) (error) {
 	}
 
 	if portNum < 1 || portNum > 65535 {
-		return errors.New("Port number must be between 1 & 65535")
+		return errors.New("port number must be between 1 & 65535")
 	}
 
 	return nil
