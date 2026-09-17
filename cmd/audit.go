@@ -34,6 +34,14 @@ var auditCmd = &cobra.Command{
 
 		fmt.Printf("[*] Launching configuration audit against: %s\n", target.String())
 
+		// Creates a new request
+		req, err := http.NewRequest(http.MethodGet, target.String(), nil)
+		if err != nil {
+			logger.Error(ctx, "HTTP GET request could not be created for target:", target)
+			fmt.Println("[!] Request creation error encountered", err)
+			os.Exit(1)
+		}
+
 		// Creates a http client
 		client := &http.Client{
 			// Sets timeout to 10 seconds
@@ -41,7 +49,7 @@ var auditCmd = &cobra.Command{
 		}
 
 		// Gets the response
-		resp, err := client.Get(target.String())
+		resp, err := client.Do(req)
 		if err != nil {
 			// Logs the response failed
 			logger.Error(ctx, "Connection failed", err)
