@@ -32,7 +32,37 @@ var auditCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Printf("[*] Launching configuration audit against: %s\n", target.String())
+		/*
+		// Cleans the url
+		cleanTarget := input.CleanURL(target)
+
+		// Checks if the target URL is nil
+		if cleanTarget == nil {
+			logger.Error(ctx, "Validation failed on target URL (could not parse)", target)
+			fmt.Printf("[!] Invalid audit target URL: could not parse URL %s\n", target)
+			os.Exit(1)
+		}
+
+		// Logs the url validation has started
+		logger.Info(ctx, "Starting validation on the url")
+
+		// Validates the target
+		err := input.ValidateURL(cleanTarget)
+		
+		// Checks if the url is valid
+		if err != nil {
+			// Logs the url is incorrect
+			logger.Error(ctx, "Invalid url", target)
+
+			// Outputs the url is incorrect
+			fmt.Printf("[!] Invalid audit target URL: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Prints the configuration is starting
+		fmt.Printf("[*] Launching configuration audit against: %s\n", cleanTarget.String())
+
+		*/
 
 		// Creates a http client
 		client := &http.Client{
@@ -41,7 +71,7 @@ var auditCmd = &cobra.Command{
 		}
 
 		// Gets the response
-		resp, err := client.Get(target.String())
+		resp, err := client.Get(cleanTarget.String())
 		if err != nil {
 			// Logs the response failed
 			logger.Error(ctx, "Connection failed", err)
