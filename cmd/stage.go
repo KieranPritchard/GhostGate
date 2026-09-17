@@ -48,51 +48,26 @@ var stageCmd = &cobra.Command{
 			}
 		}
 
-		// Logs the file path is being cleaned
-		logger.Info(ctx, "Cleaning path for stage directory", targetDir)
-		
-		// Cleans the path for the staging directory
-		cleanDir := input.CleanFilePath(targetDir)
+		logger.Info(ctx, "Parsing path for stage directory", targetDir)
 
-		// Logs the directory is being cleaned
-		logger.Info(ctx, "Validating the clean staging directory", cleanDir)
-
-		// Checks if the clean directory is valid
-		err = input.ValidateFilePath(cleanDir)
-		
+		// Prepares the staging directory
+		stageDir, err := input.PrepareFilePath(targetDir)
 		if err != nil {
-			// Logs the validation has failed
-			logger.Info(ctx, "Validation of the staging directory has failed", cleanDir)
-			
-			// Outputs the staging directory is invalid
-			fmt.Printf("[!] Invalid staging directory: %s\n", targetDir)
+			logger.Error(ctx, "Cleaning and validation failed on stage directory (could not parse)", targetDir)
+			fmt.Println("[!] Staging directory parsing error encountered:", err)
 			os.Exit(1)
 		}
 
-		// The source flag is optional — only validate it when the user provided a value
-		cleanSource := ""
-
-		// Checks if a stage source was entered
-		if source != "" {
-			cleanSource = input.CleanFilePath(source)
-			
-			// Logs if the source directory is being validated
-			logger.Info(ctx, "Validating source directory for the staging", cleanSource)
-
-			// Validates the source path
-			err = input.ValidateFilePath(cleanSource)
-			if err != nil {
-				// logs the source path is invalid
-				logger.Error(ctx, "Invalid source directory", source)
-
-				// Outputs the source is invalid
-				fmt.Printf("[!] Invalid source directory: %s\n", source)
-				os.Exit(1)
-			}
+		// Prepares the source directory
+		sourceDir, err := input.PrepareFilePath(source)
+		if err != nil {
+			logger.Error(ctx, "Cleaning and validation failed on source directory (could not parse)", targetDir)
+			fmt.Println("[!] Source directory parsing error encountered:", err)
+			os.Exit(1)
 		}
 
 		// Runs the stage payload directory function
-		commands.StagePayloadDirectory(port, cleanDir, cleanSource, useTLS, certFile, keyFile)
+		commands.StagePayloadDirectory(port, stageDir, sourceDir, useTLS, certFile, keyFile)
 	},
 }
 

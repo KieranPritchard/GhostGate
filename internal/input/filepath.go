@@ -7,23 +7,26 @@ import (
 	"strings"
 )
 
-// CleanFilePath trims leading/trailing whitespace and lexically cleans the path.
-func CleanFilePath(path string) string {
-	return filepath.Clean(strings.TrimSpace(path))
-}
+func PrepareFilePath(path string) (string, error)  {
+	// Cleans and validates the file paths
 
-// ValidateFilePath checks that filePath is non-empty and contains at least one letter.
-// Returns the path and true on success, or an empty string and false on failure.
-func ValidateFilePath(filePath string) (error) {
-	if filePath == "" {
-		return errors.New("file path must not be empty")
+	// Cleans the file path and trims the space
+	path = filepath.Clean(strings.TrimSpace(path))
+
+	// Checks if the path is empty
+	if path == "" {
+		return "", errors.New("file path must not be empty")
 	}
 
-	// Require at least one alphabetical character
-	match, _ := regexp.MatchString(`[[:alpha:]]`, filePath)
+	// Checks for at least one alphabetical character
+	match, err := regexp.MatchString(`[[:alpha:]]`, path)
+	if err != nil {
+		return "", errors.New("file path does not match the expected format")
+	}
+
 	if !match {
-		return errors.New("file path does not match the expected format")
+		return "", errors.New("Path is not the correct format")
 	}
 
-	return nil
+	return path, nil
 }

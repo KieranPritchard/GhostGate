@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -49,22 +48,13 @@ var uploadCmd = &cobra.Command{
 			}
 		}
 
-		// Cleans the uploaded URL path
-		cleanPath := strings.TrimSpace(targetPath)
-		if !strings.HasPrefix(cleanPath, "/") {
-			cleanPath = "/" + cleanPath
-		}
+		logger.Info(ctx, "Parsing path for target", targetPath)
 
-		// Logs validation has started
-		logger.Info(ctx, "Validation has started on path", cleanPath)
-
-		// Validates the url path
-		if cleanPath == "/" || strings.ContainsAny(cleanPath, " ?#") {
-			// Logs the path is invalid
-			logger.Error(ctx, "Upload path is invalid", cleanPath)
-
-			// Prints the path is invalid
-			fmt.Printf("[!] Invalid upload path: %s\n", cleanPath)
+		// Prepares the staging directory
+		targetURLPath, err := input.PrepareFilePath(targetPath)
+		if err != nil {
+			logger.Error(ctx, "Cleaning and validation failed on target (could not parse)", targetURLPath)
+			fmt.Println("[!] Target parsing error encountered:", err)
 			os.Exit(1)
 		}
 
@@ -78,29 +68,23 @@ var uploadCmd = &cobra.Command{
 			}
 		}
 
-		// Logs the destination path is being cleaned
-		logger.Info(ctx, "Cleaning destination file path", targetDest)
+		logger.Info(ctx, "Parsing path for target", targetPath)
 
-		// Cleans the destination path
-		cleanDest := input.CleanFilePath(targetDest)
-
-		// Validates the file path
-		err = input.ValidateFilePath(cleanDest)
+		// Prepares the staging directory
+		targetDestPath, err := input.PrepareFilePath(targetPath)
 		if err != nil {
-			// Logs and outputs the error
-			logger.Info(ctx, "Validation failed on file path", cleanDest)
-
-			fmt.Printf("[!] Invalid destination path: %v\n", err)
+			logger.Error(ctx, "Cleaning and validation failed on target destination (could not parse)", targetDestPath)
+			fmt.Println("[!] Target destination parsing error encountered:", err)
 			os.Exit(1)
 		}
 
-		commands.StartUploadServer(port, cleanPath, cleanDest, useTLS, certFile, keyFile)
+		commands.StartUploadServer(port, targetURLPath, targetDest, useTLS, certFile, keyFile)
 	},
 }
 
 // Stores the commands which are used by the program
 func init()  {
-	uploadCmd.Flags().StringVarP(&path, "url-path", "u", "", "Specifies the URL path to send the data to for exfilration")
+	uploadCmd.Flags().StringVarP(&path, "url", "u", "", "Specifies the URL path to send the data to for exfilration")
 	uploadCmd.Flags().StringVarP(&destination, "destination", "d", "", "Specifies the folder to store the retreived files")
 
 	// Adds the command to the root command

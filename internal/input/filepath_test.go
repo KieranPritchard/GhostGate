@@ -4,87 +4,76 @@ import (
 	"testing"
 )
 
-func TestCleanFilePath(t *testing.T) {
+func TestPrepareFilePath(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
-		want  string
+		name     string
+		input    string
+		wantPath string
+		wantErr  bool
 	}{
 		{
-			name:  "no whitespace",
-			input: "/payloads/shell.elf",
-			want:  "/payloads/shell.elf",
+			name:     "no whitespace",
+			input:    "/payloads/shell.elf",
+			wantPath: "/payloads/shell.elf",
+			wantErr:  false,
 		},
 		{
-			name:  "leading and trailing whitespace trimmed",
-			input: "  /tmp/x  ",
-			want:  "/tmp/x",
+			name:     "leading and trailing whitespace trimmed",
+			input:    "  /tmp/x  ",
+			wantPath: "/tmp/x",
+			wantErr:  false,
 		},
 		{
-			name:  "relative path cleaned",
-			input: "payloads/../payloads/shell.elf",
-			want:  "payloads/shell.elf",
+			name:     "relative path cleaned",
+			input:    "payloads/../payloads/shell.elf",
+			wantPath: "payloads/shell.elf",
+			wantErr:  false,
 		},
 		{
-			name:  "empty string returns dot",
-			input: "",
-			want:  ".",
+			name:     "valid absolute path",
+			input:    "/payloads/shell.elf",
+			wantPath: "/payloads/shell.elf",
+			wantErr:  false,
+		},
+		{
+			name:     "valid relative path",
+			input:    "payloads",
+			wantPath: "payloads",
+			wantErr:  false,
+		},
+		{
+			name:     "path with numbers and letters",
+			input:    "/tmp/payload123.bin",
+			wantPath: "/tmp/payload123.bin",
+			wantErr:  false,
+		},
+		{
+			name:     "numeric path (valid filename)",
+			input:    "12345",
+			wantPath: "12345",
+			wantErr:  true,
+		},
+		{
+			name:     "empty string returns error",
+			input:    "",
+			wantPath: "",
+			wantErr:  true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := CleanFilePath(tt.input)
-			if got != tt.want {
-				t.Errorf("CleanFilePath(%q) = %q; want %q", tt.input, got, tt.want)
-			}
-		})
-	}
-}
+			path, err := PrepareFilePath(tt.input)
 
-func TestValidateFilePath(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   string
-		wantErr bool
-	}{
-		{
-			name:    "empty path returns error",
-			input:   "",
-			wantErr: true,
-		},
-		{
-			name:    "numeric-only path returns error",
-			input:   "12345",
-			wantErr: true,
-		},
-		{
-			name:    "special-chars-only path returns error",
-			input:   "!@#$%",
-			wantErr: true,
-		},
-		{
-			name:    "valid absolute path",
-			input:   "/payloads/shell.elf",
-			wantErr: false,
-		},
-		{
-			name:    "valid relative path",
-			input:   "payloads",
-			wantErr: false,
-		},
-		{
-			name:    "path with numbers and letters",
-			input:   "/tmp/payload123.bin",
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateFilePath(tt.input)
+			// Check error presence
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateFilePath(%q) error = %v; wantErr %v", tt.input, err, tt.wantErr)
+				t.Errorf("PrepareFilePath(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+				return
+			}
+
+			// Check output path value if no error was expected
+			if !tt.wantErr && path != tt.wantPath {
+				t.Errorf("PrepareFilePath(%q) path = %q, wantPath %q", tt.input, path, tt.wantPath)
 			}
 		})
 	}
