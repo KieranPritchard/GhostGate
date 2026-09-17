@@ -50,7 +50,7 @@ var auditCmd = &cobra.Command{
 		}
 		defer resp.Body.Close()
 
-		commands.AuditRequest(resp)
+		commands.AuditRequest(os.Stdout, resp)
 	},
 }
 

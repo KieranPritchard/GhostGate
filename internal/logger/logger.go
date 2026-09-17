@@ -9,20 +9,23 @@ import (
 	"sync"
 )
 
+// LevelOff is a custom slog.Level set higher than LevelError to suppress all logging outputs.
+const LevelOff = slog.Level(100)
+
 // Format encodes the logs to be strings when output
 type Format string
 
 // Stores the format types as constants
 const (
-	FormatJSON Format = "json" // structured, one JSON object per line - good for audit trails / log aggregators 
+	FormatJSON Format = "json" // structured, one JSON object per line - good for audit trails / log aggregators
 	FormatText Format = "text" // clear-text key=value - good for local dev diagnostics
 )
 
 // Config to control how the engine is constructed
 type Config struct {
-	Level string // "DEBUG", "INFO", "WARN", "ERROR" (case-insensitive)
-	Format Format // FormatJSON or FormatText
-	Output io.Writer // where records are written; defaults to os.Stdout
+	Level     string    // "DEBUG", "INFO", "WARN", "ERROR", "OFF"/"SILENT" (case-insensitive)
+	Format    Format    // FormatJSON or FormatText
+	Output    io.Writer // where records are written; defaults to os.Stdout
 	AddSource bool      // include file:line of the log call site
 }
 
@@ -33,7 +36,7 @@ var levelVar = new(slog.LevelVar)
 
 var (
 	defaultLogger *slog.Logger
-	mu sync.RWMutex
+	mu            sync.RWMutex
 )
 
 // ParseLevel converts a config string into a slog.Level. Unknown values
@@ -46,6 +49,8 @@ func ParseLevel(s string) slog.Level {
 		return slog.LevelWarn
 	case "ERROR":
 		return slog.LevelError
+	case "OFF", "SILENT", "NONE":
+		return LevelOff
 	default:
 		return slog.LevelInfo
 	}
@@ -108,13 +113,13 @@ func CurrentLevel() slog.Level {
 }
 
 // Default returns the package-level default logger, building a sane
-// INFO/text logger to stdout if New was never called.
+// INFO/text logger to io.Discard if New was never called.
 func Default() *slog.Logger {
 	mu.RLock()
 	l := defaultLogger
 	mu.RUnlock()
 	if l == nil {
-		return New(Config{Level: "INFO", Format: FormatText})
+		return New(Config{Level: "INFO", Format: FormatText, Output: io.Discard})
 	}
 	return l
 }
