@@ -3,3 +3,4 @@ coverage.out
 dist/
 ghostgate
 *.exe
+/.history/
