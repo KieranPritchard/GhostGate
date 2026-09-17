@@ -25,7 +25,7 @@ func PrepareFilePath(path string) (string, error)  {
 	}
 
 	if !match {
-		return "", errors.New("Path is not the correct format")
+		return "", errors.New("path is not the correct format")
 	}
 
 	return path, nil
