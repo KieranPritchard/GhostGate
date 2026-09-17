@@ -4,45 +4,27 @@ import (
 	"testing"
 )
 
-func TestCleanPort(t *testing.T) {
-	tests := []struct {
-		name  string
-		input string
-		want  string
-	}{
-		{
-			name:  "no whitespace",
-			input: "8080",
-			want:  "8080",
-		},
-		{
-			name:  "leading and trailing whitespace trimmed",
-			input: "  8080  ",
-			want:  "8080",
-		},
-		{
-			name:  "only whitespace becomes empty",
-			input: "   ",
-			want:  "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := CleanPort(tt.input)
-			if got != tt.want {
-				t.Errorf("CleanPort(%q) = %q; want %q", tt.input, got, tt.want)
-			}
-		})
-	}
-}
-
-func TestValidatePort(t *testing.T) {
+func TestPreparePort(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
 		wantErr bool
 	}{
+		{
+			name:    "no whitespace",
+			input:   "8080",
+			wantErr: false,
+		},
+		{
+			name:    "leading and trailing whitespace trimmed",
+			input:   "  8080  ",
+			wantErr: false,
+		},
+		{
+			name:    "only whitespace becomes empty",
+			input:   "   ",
+			wantErr: true,
+		},
 		{
 			name:    "port too high (999999)",
 			input:   "999999",
@@ -92,9 +74,9 @@ func TestValidatePort(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidatePort(tt.input)
+			port, err := PreparePort(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidatePort(%q) error = %v; wantErr %v", tt.input, err, tt.wantErr)
+				t.Errorf("ValidatePort(%q) error = %v on target = %s; wantErr %v", tt.input, err, port, tt.wantErr)
 			}
 		})
 	}

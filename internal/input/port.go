@@ -6,21 +6,23 @@ import (
 	"strings"
 )
 
-// CleanPort trims leading/trailing whitespace from a port string.
-func CleanPort(port string) string {
-	return strings.TrimSpace(port)
-}
+func PreparePort(port string) (string, error)  {
+	// Cleans and validates the ports
+	
+	// Removes trailing spaces
+	port = strings.TrimSpace(port)
 
-// ValidatePort returns true if port is a valid integer in the range 1–65535.
-func ValidatePort(port string) (error) {
+	// Converts the port to a number
 	portNum, err := strconv.Atoi(port)
 	if err != nil {
-		return err
+		return "", err
 	}
 
+	// Checks if in correct range
 	if portNum < 1 || portNum > 65535 {
-		return errors.New("port number must be between 1 & 65535")
+		return "", errors.New("port number must be between 1 & 65535")
 	}
 
-	return nil
+	// Returns the port
+	return port, nil
 }

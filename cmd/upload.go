@@ -29,22 +29,13 @@ var uploadCmd = &cobra.Command{
 		logger.Info(ctx, "Parsing commands for 'upload'")
 		
 		// Logs the ports are being cleaned
-		logger.Info(ctx, "Cleaning entered port", port)
-		
-		// Cleans the port
-		cleanPort := input.CleanPort(port)
+		logger.Info(ctx, "Parses the entered port", port)
 
-		// Logs the validation has started
-		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
-
-		// Validating the clean port
-		err := input.ValidatePort(cleanPort)
+		// Prepares the port
+		port, err := input.PreparePort(port)
 		if err != nil {
-			// Logs the port is invalid
-			logger.Error(ctx, "Validation failed on port", cleanPort)
-			
-			// Prints the port is invalid
-			fmt.Printf("[!] Invalid port: %s\n", port)
+			logger.Error(ctx, "Cleaning and validation failed on target port (could not parse)", port)
+			fmt.Println("[!] Port parsing error encountered:", err)
 			os.Exit(1)
 		}
 
@@ -103,7 +94,7 @@ var uploadCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		commands.StartUploadServer(cleanPort, cleanPath, cleanDest, useTLS, certFile, keyFile)
+		commands.StartUploadServer(port, cleanPath, cleanDest, useTLS, certFile, keyFile)
 	},
 }
 

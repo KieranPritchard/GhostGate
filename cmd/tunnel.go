@@ -27,28 +27,22 @@ var tunnelCmd = &cobra.Command{
 		target, err := input.PrepareURL(target)
 		if err != nil {
 			logger.Error(ctx, "Cleaning and validation failed on target (could not parse)", target)
-			fmt.Println("[!] Auditing error encountered", err)
+			fmt.Println("[!] Domain parsing error encountered: ", err)
 			os.Exit(1)
 		}
 
-		// Logs the port is being cleaned
-		logger.Info(ctx, "Cleaning has started on the port", port)
+		// Logs the ports are being cleaned
+		logger.Info(ctx, "Parses the entered port", port)
 
-		// Cleans the port entered
-		cleanPort := input.CleanPort(port)
-
-		// Validates the path
-		err = input.ValidatePort(cleanPort)
+		// Prepares the port
+		port, err := input.PreparePort(port)
 		if err != nil {
-			// Logs the port is invalid
-			logger.Error(ctx, "Port is invalid", port)
-
-			// Ouputs the port is invalid
-			fmt.Printf("[!] Invalid port: %s\n", port)
+			logger.Error(ctx, "Cleaning and validation failed on target port (could not parse)", port)
+			fmt.Println("[!] Port parsing error encountered:", err)
 			os.Exit(1)
 		}
 
-		commands.StartTunnelServer(cleanPort, target.String(), useTLS, certFile, keyFile)
+		commands.StartTunnelServer(port, target.String(), useTLS, certFile, keyFile)
 	},
 }
 

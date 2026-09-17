@@ -28,24 +28,13 @@ var stageCmd = &cobra.Command{
 		logger.Info(ctx, "Parsing commands for 'stage'")
 
 		// Logs the ports are being cleaned
-		logger.Info(ctx, "Cleaning entered port", port)
+		logger.Info(ctx, "Parses the entered port", port)
 
-		// Cleans the port number
-		cleanPort := input.CleanPort(port)
-
-		// Logs the validation has started
-		logger.Info(ctx, "Starting validation on cleaned port", cleanPort)
-
-		// Validates the port number
-		err := input.ValidatePort(cleanPort)
-
-		// Validates the port number
-		if err != nil{
-			// Logs the port is invalid
-			logger.Error(ctx, "Validation failed on port", cleanPort)
-
-			// Outputs the port is invalid
-			fmt.Printf("[!] Invalid port: %s\n", port)
+		// Prepares the port
+		port, err := input.PreparePort(port)
+		if err != nil {
+			logger.Error(ctx, "Cleaning and validation failed on target port (could not parse)", port)
+			fmt.Println("[!] Port parsing error encountered:", err)
 			os.Exit(1)
 		}
 
@@ -103,7 +92,7 @@ var stageCmd = &cobra.Command{
 		}
 
 		// Runs the stage payload directory function
-		commands.StagePayloadDirectory(cleanPort, cleanDir, cleanSource, useTLS, certFile, keyFile)
+		commands.StagePayloadDirectory(port, cleanDir, cleanSource, useTLS, certFile, keyFile)
 	},
 }
 
