@@ -13,6 +13,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Stores the arguements relevant to the function
+var headers string
+var randomised bool
+
 var auditCmd = &cobra.Command{
 	Use: "audit",
 	Short: "Audits a http server",
@@ -48,10 +52,9 @@ var auditCmd = &cobra.Command{
 			Timeout: 10 * time.Second,
 		}
 
-		// Gets the response
+		// Gets the response and closes the body when done
 		resp, err := client.Do(req)
 		if err != nil {
-			// Logs the response failed
 			logger.Error(ctx, "Connection failed", err)
 			fmt.Printf("[!] Connection failed: %v\n", err)
 			os.Exit(1)
@@ -63,5 +66,10 @@ var auditCmd = &cobra.Command{
 }
 
 func init(){
+	// Adds the commands exclusive to this
+	auditCmd.Flags().StringVarP(&headers, "headers", "-H", "", "Defines the headers which can be used in the request")
+	auditCmd.Flags().BoolVarP(&randomised, "random", "r", false, "Used to randomise the user agent header")
+
+	// Adds the root command to the audit
 	rootCmd.AddCommand(auditCmd)
 }
