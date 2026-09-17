@@ -23,29 +23,11 @@ var tunnelCmd = &cobra.Command{
 		// Logs the commands are being parsed
 		logger.Info(ctx, "Parsing commands for 'tunnel'")
 
-		// Cleans the tunnel target
-		cleanURL := input.CleanURL(target)
-
-		// Checks if the url is nil
-		if cleanURL == nil {
-			logger.Error(ctx, "Validation failed on tunnel target (could not parse)", target)
-			fmt.Printf("[!] Invalid tunnel target URL: could not parse URL %s\n", target)
-			os.Exit(1)
-		}
-
-		// Logs validation has start
-		logger.Info(ctx, "Validation started on the url", cleanURL)
-
-		// Validates the url
-		err := input.ValidateURL(cleanURL)
-
-		// Check if there is an error
+		// Prepares the target
+		target, err := input.PrepareURL(target)
 		if err != nil {
-			// Logs the validation has failed
-			logger.Error(ctx, "Validation failed on tunnel target", target)
-			
-			// Outputs the target is invalid
-			fmt.Printf("[!] Invalid tunnel target URL: %v\n", err)
+			logger.Error(ctx, "Cleaning and validation failed on target (could not parse)", target)
+			fmt.Println("[!] Auditing error encountered", err)
 			os.Exit(1)
 		}
 
@@ -66,7 +48,7 @@ var tunnelCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		commands.StartTunnelServer(cleanPort, cleanURL.String(), useTLS, certFile, keyFile)
+		commands.StartTunnelServer(cleanPort, target.String(), useTLS, certFile, keyFile)
 	},
 }
 
