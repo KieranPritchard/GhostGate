@@ -5,7 +5,6 @@ import (
 	"embed"
 	"io/fs"
 	"math/rand"
-	"time"
 )
 
 //go:embed resources/*
@@ -55,7 +54,6 @@ func GetRandomHeader() (string, error) {
 	} 
 	
 	// Gets a random header
-	rand.Seed(time.Now().UnixNano())
 	index := rand.Intn(len(userAgents))
 
 	// Returns the index
