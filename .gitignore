@@ -4,3 +4,4 @@ dist/
 ghostgate
 *.exe
 .history/
+internal/util/userAgents_test.go
