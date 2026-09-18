@@ -4,6 +4,7 @@ import (
 	"GhostGate/internal/commands"
 	"GhostGate/internal/input"
 	"GhostGate/internal/logger"
+	"GhostGate/internal/util"
 	"context"
 	"fmt"
 	"net/http"
@@ -44,6 +45,19 @@ var auditCmd = &cobra.Command{
 			logger.Error(ctx, "HTTP GET request could not be created for target:", target)
 			fmt.Println("[!] Request creation error encountered", err)
 			os.Exit(1)
+		}
+
+		// Checks if randomised is true
+		if randomised {
+			// Gets the random the 
+			randomAgent, err := util.GetRandomHeader()
+			if err != nil {
+				logger.Error(ctx, "Random header for target request could not be made:", target)
+				fmt.Println("[!] Request creation error encountered", err)
+				os.Exit(1)
+			}
+			
+			req.Header.Set("User-Agent", randomAgent)
 		}
 
 		// Creates a http client
