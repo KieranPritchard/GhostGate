@@ -2,13 +2,17 @@ package util
 
 import (
 	"bufio"
-	"math/rand"
 	"embed"
+	"io/fs"
+	"math/rand"
 	"time"
 )
 
 //go:embed resources/*
-var userAgentFiles embed.FS
+var embeddedUserAgentFiles embed.FS
+
+// Type as fs.FS interface so tests can assign fstest.MapFS to it
+var userAgentFiles fs.FS = embeddedUserAgentFiles
 
 func loadUserAgents() ([]string, error)  {
 	// Functions to load user agents file
@@ -17,7 +21,7 @@ func loadUserAgents() ([]string, error)  {
 	agents := make([]string, 0)
 
 	// Opens the directory and closes when done
-	file, err := userAgentFiles.Open("./resources/user_agents.txt")
+	file, err := userAgentFiles.Open("resources/user_agents.txt")
 	if err != nil {
 		return nil, err
 	}
