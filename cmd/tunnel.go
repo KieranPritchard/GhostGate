@@ -4,6 +4,7 @@ import (
 	"GhostGate/internal/commands"
 	"GhostGate/internal/input"
 	"GhostGate/internal/logger"
+	"GhostGate/internal/util"
 	"context"
 	"fmt"
 	"os"
@@ -42,7 +43,32 @@ var tunnelCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		commands.StartTunnelServer(port, target.String(), useTLS, certFile, keyFile)
+		var randomAgent string
+		var structuredHeaders []input.Header
+
+		// Checks if randomised is true
+		if randomised {
+			// Gets the random the 
+			randomAgent, err = util.GetRandomHeader()
+			if err != nil {
+				logger.Error(ctx, "Random header for target request could not be made:", target)
+				fmt.Println("[!] Request creation error encountered", err)
+				os.Exit(1)
+			}
+		}
+
+		// Checks if there are any headers
+		if len(headers) > 0 {
+			// Prepares the headers
+			structuredHeaders, err = input.PrepareHeaders(headers)
+			if err != nil {
+				logger.Error(ctx, "Headers could not be parsed:", headers)
+				fmt.Println("[!] Header parsing error encountered:", err)
+				os.Exit(1)
+			}
+		}
+
+		commands.StartTunnelServer(port, target.String(), useTLS, certFile, keyFile, randomAgent, structuredHeaders)
 	},
 }
 

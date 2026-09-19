@@ -2,6 +2,7 @@ package commands
 
 import (
 	"GhostGate/internal/networking"
+	"GhostGate/internal/input"
 	"fmt"
 	"io"
 	"log"
@@ -14,7 +15,7 @@ import (
 
 // HandleTunnel returns an http.HandlerFunc that forwards every incoming request
 // to target, relays the response headers and body back to the original caller.
-func HandleTunnel(target string) http.HandlerFunc {
+func HandleTunnel(target string, randomAgent string, headers []input.Header) http.HandlerFunc {
 	return func(writer http.ResponseWriter, reader *http.Request) {
 		client := &http.Client{Timeout: 10 * time.Second}
 
@@ -30,6 +31,19 @@ func HandleTunnel(target string) http.HandlerFunc {
 			for _, value := range values {
 				req.Header.Add(key, value)
 			}
+		}
+
+		// Checks for if there are new headers
+		if len(headers) != 0 {
+			// Loops over each of the headers
+			for _, header := range headers {
+				req.Header.Add(header.Key, header.Value)
+			}
+		}
+
+		// Checks for if there are new headers
+		if len(randomAgent) != 0 {
+			req.Header.Add(randomAgent, randomAgent)
 		}
 
 		// Send the proxied request
@@ -56,13 +70,13 @@ func HandleTunnel(target string) http.HandlerFunc {
 // all requests to target. When useTLS is true the listener is served over HTTPS.
 // If certFile and keyFile are provided those are used; otherwise a self-signed
 // in-memory certificate is generated automatically.
-func StartTunnelServer(port, target string, useTLS bool, certFile, keyFile string) {
+func StartTunnelServer(port, target string, useTLS bool, certFile, keyFile string, randomAgent string, structuredHeaders []input.Header) {
 	// Set up signal handling so Ctrl+C triggers a clean shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", HandleTunnel(target))
+	mux.HandleFunc("/", HandleTunnel(target, randomAgent, structuredHeaders))
 
 	scheme := "http"
 	if useTLS {
