@@ -18,6 +18,8 @@ var certFile string
 var keyFile string
 var port string
 var target string
+var headers string
+var randomised bool
 
 // Defines the root command
 var rootCmd = &cobra.Command{
@@ -50,10 +52,12 @@ func init() {
 		os.Exit(1)
 	}
 	cfg = loadedCfg
-
+	
 	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", cfg.DefaultPort, "Port to run the service on")
 	rootCmd.PersistentFlags().BoolVarP(&useTLS, "tls", "e", cfg.DefaultTLSEnabled, "Specifies to use tls for connection")
 	rootCmd.PersistentFlags().StringVarP(&certFile, "cert-file", "c", cfg.DefaultTLSCertFile, "Specifies a path of a cert file")
 	rootCmd.PersistentFlags().StringVarP(&keyFile, "key-file", "k", cfg.DefaultTLSKeyFile, "Specifies a path of a key file")
 	rootCmd.PersistentFlags().StringVarP(&target, "target", "t", "", "Specifies the target")
+	rootCmd.PersistentFlags().StringVarP(&headers, "headers", "H", "", "Defines the headers which can be used in the request")
+	rootCmd.PersistentFlags().BoolVarP(&randomised, "random", "r", false, "Used to randomise the user agent header")
 }

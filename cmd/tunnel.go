@@ -48,8 +48,6 @@ var tunnelCmd = &cobra.Command{
 
 // Stores the commands which are used by the program
 func init() {
-	tunnelCmd.Flags().StringVarP(&target, "target", "t", "", "Specifies the target to tunnel to")
-
 	// Adds the command to the root file
 	rootCmd.AddCommand(tunnelCmd)
 }
