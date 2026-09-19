@@ -47,11 +47,6 @@ func PrepareHeaders(headers string) ([]Header, error) {
 			return nil, fmt.Errorf("invalid header %q: empty value", header)
 		}
 
-		// Reject control characters / CR / LF in the value (header injection / CRLF injection risk)
-		if strings.ContainsAny(value, "\r\n\x00") {
-			return nil, fmt.Errorf("invalid header value for %q: contains control characters", key)
-		}
-
 		// Builds the header and adds it to the combined headers list
 		var newHeader Header
 		newHeader.key = key
