@@ -12,6 +12,8 @@ import (
 	"syscall"
 )
 
+const maxBytes = 100 << 20 // 100mb
+
 // UploadHandler returns an http.HandlerFunc that receives POST requests and writes
 // the request body to a file inside exfilDir. The filename is taken from the
 // X-File-Name header, or defaults to "exfil_data.bin".
@@ -22,6 +24,8 @@ func UploadHandler(exfilDir string) http.HandlerFunc {
 			http.Error(writer, "Use POST to exfiltrate data", http.StatusMethodNotAllowed)
 			return
 		}
+
+		reader.Body = http.MaxBytesReader(writer, reader.Body, maxBytes)
 
 		// Ensure the destination directory exists
 		if err := os.MkdirAll(exfilDir, 0755); err != nil {
