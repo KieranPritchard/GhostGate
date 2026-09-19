@@ -8,8 +8,8 @@ import (
 
 // type to store the headerss
 type Header struct {
-	key string
-	value string
+	Key string
+	Value string
 }
 
 // Function to split header and value by space and add to the structure
@@ -49,8 +49,8 @@ func PrepareHeaders(headers string) ([]Header, error) {
 
 		// Builds the header and adds it to the combined headers list
 		var newHeader Header
-		newHeader.key = key
-		newHeader.value = value
+		newHeader.Key = key
+		newHeader.Value = value
 
 		combinedHeaders = append(combinedHeaders, newHeader)
 	}

@@ -56,8 +56,24 @@ var auditCmd = &cobra.Command{
 				fmt.Println("[!] Request creation error encountered", err)
 				os.Exit(1)
 			}
-			
+
 			req.Header.Set("User-Agent", randomAgent)
+		}
+
+		// Checks if there are any headers
+		if len(headers) > 0 {
+			// Prepares the headers
+			structuredHeaders, err := input.PrepareHeaders(headers)
+			if err != nil {
+				logger.Error(ctx, "Headers could not be parsed:", headers)
+				fmt.Println("[!] Header parsing error encountered:", err)
+				os.Exit(1)
+			}
+
+			// Loops over each of the headers and sets them
+			for _, header := range structuredHeaders {
+				req.Header.Set(header.Key, header.Value)
+			}
 		}
 
 		// Creates a http client
