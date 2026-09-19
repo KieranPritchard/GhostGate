@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"GhostGate/internal/util"
 	"bytes"
 	"io"
 	"net/http"
@@ -308,7 +309,7 @@ func TestExtractHTMLSecurityHits(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ExtractHTMLSecurityHits([]byte(tt.html))
+			got := util.ExtractHTMLSecurityHits([]byte(tt.html))
 
 			for _, want := range tt.wantSubstrs {
 				if !strings.Contains(got, want) {
@@ -361,7 +362,7 @@ func TestFormatBody(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := formatBody(tt.contentType, []byte(tt.body))
+			got := util.FormatBody(tt.contentType, []byte(tt.body))
 
 			if !strings.Contains(got, tt.wantSubstr) {
 				t.Errorf("formatBody(%q, %q) = %q, want substring %q", tt.contentType, tt.body, got, tt.wantSubstr)
