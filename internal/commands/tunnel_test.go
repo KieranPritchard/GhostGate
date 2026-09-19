@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"GhostGate/internal/input"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -16,7 +17,7 @@ func TestHandleTunnel_RelaysResponseBody(t *testing.T) {
 	}))
 	defer backend.Close()
 
-	handler := HandleTunnel(backend.URL)
+	handler := HandleTunnel(backend.URL, "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -45,7 +46,7 @@ func TestHandleTunnel_ForwardsRequestHeaders(t *testing.T) {
 	}))
 	defer backend.Close()
 
-	handler := HandleTunnel(backend.URL)
+	handler := HandleTunnel(backend.URL, "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("X-Custom-Header", "ghostgate-test")
@@ -65,7 +66,7 @@ func TestHandleTunnel_RelaysResponseHeaders(t *testing.T) {
 	}))
 	defer backend.Close()
 
-	handler := HandleTunnel(backend.URL)
+	handler := HandleTunnel(backend.URL, "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -80,7 +81,7 @@ func TestHandleTunnel_RelaysResponseHeaders(t *testing.T) {
 // TestHandleTunnel_BadUpstreamReturns502 verifies that an unreachable upstream yields 502.
 func TestHandleTunnel_BadUpstreamReturns502(t *testing.T) {
 	// Port 1 is reserved and will always fail to connect.
-	handler := HandleTunnel("http://127.0.0.1:1")
+	handler := HandleTunnel("http://127.0.0.1:1", "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -98,7 +99,7 @@ func TestHandleTunnel_StatusCodeRelayed(t *testing.T) {
 	}))
 	defer backend.Close()
 
-	handler := HandleTunnel(backend.URL)
+	handler := HandleTunnel(backend.URL, "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/missing", nil)
 	rec := httptest.NewRecorder()
@@ -121,7 +122,7 @@ func TestHandleTunnel_POSTBodyRelayed(t *testing.T) {
 	}))
 	defer backend.Close()
 
-	handler := HandleTunnel(backend.URL)
+	handler := HandleTunnel(backend.URL, "", nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(payload))
 	rec := httptest.NewRecorder()
@@ -134,7 +135,7 @@ func TestHandleTunnel_POSTBodyRelayed(t *testing.T) {
 
 // TestHandleTunnel_InvalidTarget verifies 500 when target URL is malformed for NewRequest.
 func TestHandleTunnel_InvalidTarget(t *testing.T) {
-	handler := HandleTunnel("://bad-target\x7f")
+	handler := HandleTunnel("://bad-target\x7f", "", nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -145,3 +146,27 @@ func TestHandleTunnel_InvalidTarget(t *testing.T) {
 	}
 }
 
+// TestHandleTunnel_ForwardsStructuredHeaders verifies extra headers passed via input.Header are added to the outgoing request.
+func TestHandleTunnel_ForwardsStructuredHeaders(t *testing.T) {
+	var receivedHeader string
+
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedHeader = r.Header.Get("X-Injected")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer backend.Close()
+
+	extraHeaders := []input.Header{
+		{Key: "X-Injected", Value: "injected-value"},
+	}
+
+	handler := HandleTunnel(backend.URL, "", extraHeaders)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	handler(rec, req)
+
+	if receivedHeader != "injected-value" {
+		t.Errorf("backend received header = %q; want %q", receivedHeader, "injected-value")
+	}
+}
