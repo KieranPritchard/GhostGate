@@ -8,7 +8,7 @@ import (
 
 // type to store the headerss
 type Header struct {
-	Key string
+	Key   string
 	Value string
 }
 
@@ -21,7 +21,7 @@ func PrepareHeaders(headers string) ([]Header, error) {
 
 	// Stores the empty arrary
 	combinedHeaders := make([]Header, 0)
-	
+
 	// Splits each of the strings by their spaces
 	separatedHeaders := strings.Fields(headers)
 

@@ -52,7 +52,7 @@ func init() {
 		os.Exit(1)
 	}
 	cfg = loadedCfg
-	
+
 	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", cfg.DefaultPort, "Port to run the service on")
 	rootCmd.PersistentFlags().BoolVarP(&useTLS, "tls", "e", cfg.DefaultTLSEnabled, "Specifies to use tls for connection")
 	rootCmd.PersistentFlags().StringVarP(&certFile, "cert-file", "c", cfg.DefaultTLSCertFile, "Specifies a path of a cert file")

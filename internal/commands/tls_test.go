@@ -31,7 +31,6 @@ func TestStartTLSServer_InvalidPort(t *testing.T) {
 	}
 }
 
-
 // TestStartTLSServer_ValidCert verifies that a valid in-memory cert can be loaded
 // into a TLS listener (exercises the key pair parsing path of startTLSServer).
 func TestStartTLSServer_ValidCert(t *testing.T) {

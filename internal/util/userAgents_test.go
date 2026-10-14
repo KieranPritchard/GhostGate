@@ -28,12 +28,12 @@ var missingAgentsFS = fstest.MapFS{}
 // withAgentsFS temporarily swaps the package-level userAgentFiles variable,
 // restoring the original (real) embedded filesystem once the test finishes.
 func withAgentsFS(t *testing.T, fsys fs.FS) {
-    t.Helper()
-    original := userAgentFiles
-    userAgentFiles = fsys
-    t.Cleanup(func() {
-        userAgentFiles = original
-    })
+	t.Helper()
+	original := userAgentFiles
+	userAgentFiles = fsys
+	t.Cleanup(func() {
+		userAgentFiles = original
+	})
 }
 
 func TestLoadUserAgents_Valid(t *testing.T) {

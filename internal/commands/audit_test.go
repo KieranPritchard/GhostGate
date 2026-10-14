@@ -12,11 +12,11 @@ import (
 // TestCheckInsecureHeader covers the per-header warning logic
 func TestCheckInsecureHeader(t *testing.T) {
 	tests := []struct {
-		name        string
-		key         string
-		value       string
-		wantSubstr  string // substring expected in the output, empty means no warning
-		wantNoWarn  bool
+		name       string
+		key        string
+		value      string
+		wantSubstr string // substring expected in the output, empty means no warning
+		wantNoWarn bool
 	}{
 		{
 			name:       "server header discloses tech stack",
@@ -385,11 +385,11 @@ func TestAuditRequest(t *testing.T) {
 
 	t.Run("response with nil Request does not panic and reports unknown host", func(t *testing.T) {
 		resp := &http.Response{
-			Status:     "200 OK",
-			Proto:      "HTTP/1.1",
-			Header:     http.Header{"Content-Type": []string{"application/json"}},
-			Body:       io.NopCloser(strings.NewReader(`{"ok":true}`)),
-			Request:    nil, // deliberately unset to exercise the nil guard
+			Status:  "200 OK",
+			Proto:   "HTTP/1.1",
+			Header:  http.Header{"Content-Type": []string{"application/json"}},
+			Body:    io.NopCloser(strings.NewReader(`{"ok":true}`)),
+			Request: nil, // deliberately unset to exercise the nil guard
 		}
 
 		var buf bytes.Buffer

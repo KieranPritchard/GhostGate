@@ -17,16 +17,16 @@ var destination string
 
 // The upload command
 var uploadCmd = &cobra.Command{
-	Use: "upload",
+	Use:   "upload",
 	Short: "Creates a URL which allows for the user upload files to",
 
-	Run: func (cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
 		// Creates a new context
 		ctx := context.Background()
 
 		// Logs the commands are being parsed
 		logger.Info(ctx, "Parsing commands for 'upload'")
-		
+
 		// Logs the ports are being cleaned
 		logger.Info(ctx, "Parses the entered port", port)
 
@@ -83,7 +83,7 @@ var uploadCmd = &cobra.Command{
 }
 
 // Stores the commands which are used by the program
-func init()  {
+func init() {
 	uploadCmd.Flags().StringVarP(&path, "url", "u", "", "Specifies the URL path to send the data to for exfilration")
 	uploadCmd.Flags().StringVarP(&destination, "destination", "d", "", "Specifies the folder to store the retreived files")
 

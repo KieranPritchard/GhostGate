@@ -254,4 +254,3 @@ func TestInitializeConfig_WithTLS(t *testing.T) {
 		t.Fatalf("InitializeConfig() failed: %v", err)
 	}
 }
-

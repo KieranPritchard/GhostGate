@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func PrepareURL(rawURL string) (*url.URL, error)  {
+func PrepareURL(rawURL string) (*url.URL, error) {
 	// Cleans and validates the URL
 
 	// Parses the url

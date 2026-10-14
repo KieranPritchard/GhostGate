@@ -14,10 +14,10 @@ import (
 
 // The tunnel command
 var tunnelCmd = &cobra.Command{
-	Use: "tunnel",
+	Use:   "tunnel",
 	Short: "Creates a http tunnel to a target",
 
-	Run: func (cmd *cobra.Command, args []string)  {
+	Run: func(cmd *cobra.Command, args []string) {
 		// Creates a new context
 		ctx := context.Background()
 
@@ -48,7 +48,7 @@ var tunnelCmd = &cobra.Command{
 
 		// Checks if randomised is true
 		if randomised {
-			// Gets the random the 
+			// Gets the random the
 			randomAgent, err = util.GetRandomHeader()
 			if err != nil {
 				logger.Error(ctx, "Random header for target request could not be made:", target)

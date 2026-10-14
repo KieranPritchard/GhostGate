@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-func PreparePort(port string) (string, error)  {
+func PreparePort(port string) (string, error) {
 	// Cleans and validates the ports
-	
+
 	// Removes trailing spaces
 	port = strings.TrimSpace(port)
 

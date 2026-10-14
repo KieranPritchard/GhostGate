@@ -1,9 +1,9 @@
 package config
 
 import (
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"github.com/spf13/viper"
 )
 
 // Defines the config struct

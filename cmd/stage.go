@@ -16,11 +16,11 @@ var directory string
 var source string
 
 var stageCmd = &cobra.Command{
-	Use: "stage",
+	Use:   "stage",
 	Short: "Serves a local directory via HTTP for remote access.",
 
 	// Run handles the logic for when this command is called
-	Run: func (cmd *cobra.Command, args []string)  {
+	Run: func(cmd *cobra.Command, args []string) {
 		// Creates a new context
 		ctx := context.Background()
 

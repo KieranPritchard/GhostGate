@@ -13,9 +13,9 @@ var embeddedUserAgentFiles embed.FS
 // Type as fs.FS interface so tests can assign fstest.MapFS to it
 var userAgentFiles fs.FS = embeddedUserAgentFiles
 
-func loadUserAgents() ([]string, error)  {
+func loadUserAgents() ([]string, error) {
 	// Functions to load user agents file
-	
+
 	// Stores the agents
 	agents := make([]string, 0)
 
@@ -47,12 +47,12 @@ func loadUserAgents() ([]string, error)  {
 func GetRandomHeader() (string, error) {
 	// Function to get random header
 
-	// Loads in the user agents 
+	// Loads in the user agents
 	userAgents, err := loadUserAgents()
 	if err != nil {
 		return "", err
-	} 
-	
+	}
+
 	// Gets a random header
 	index := rand.Intn(len(userAgents))
 

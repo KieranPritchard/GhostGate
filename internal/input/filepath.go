@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func PrepareFilePath(path string) (string, error)  {
+func PrepareFilePath(path string) (string, error) {
 	// Cleans and validates the file paths
 
 	// Cleans the file path and trims the space

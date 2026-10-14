@@ -15,10 +15,10 @@ import (
 )
 
 var auditCmd = &cobra.Command{
-	Use: "audit",
+	Use:   "audit",
 	Short: "Audits a http server",
 
-	Run: func (cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
 		// Creates a new context
 		ctx := context.Background()
 
@@ -45,7 +45,7 @@ var auditCmd = &cobra.Command{
 
 		// Checks if randomised is true
 		if randomised {
-			// Gets the random the 
+			// Gets the random the
 			randomAgent, err := util.GetRandomHeader()
 			if err != nil {
 				logger.Error(ctx, "Random header for target request could not be made:", target)
@@ -91,7 +91,7 @@ var auditCmd = &cobra.Command{
 	},
 }
 
-func init(){
+func init() {
 	// Adds the root command to the audit
 	rootCmd.AddCommand(auditCmd)
 }

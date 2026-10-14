@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"GhostGate/internal/networking"
 	"GhostGate/internal/input"
+	"GhostGate/internal/networking"
 	"fmt"
 	"io"
 	"log"
