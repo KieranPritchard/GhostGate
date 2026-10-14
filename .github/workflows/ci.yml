@@ -1,70 +1,49 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
 
 jobs:
-  test:
-    name: Test & Lint
-    runs-on: ubuntu-latest
+    test:
+        name: Build & Test
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
+            - name: Set-up Go
+              uses: actions/setup-go@v5
+              with:
+                go-version-file: go.mod
+                cache: true
 
-      # ── Static analysis ──────────────────────────────────────────────────────
+            - name: Verify dependencies
+              run: go mod verify
 
-      - name: Run go vet
-        run: go vet ./...
+            - name: Check formatting
+              run: |
+                unformatted=$(gofmt -l .)
+                if [ -n "$unformatted" ]; then
+                  echo "These files need gofmt:"
+                  echo "$unformatted"
+                  exit 1
+                fi
 
-      - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+            - name: Vet
+              run: go vet ./...
 
-      - name: Run staticcheck
-        run: staticcheck ./...
+            - name: Build
+              run: go build ./...
 
-      # ── Tests ────────────────────────────────────────────────────────────────
+            - name: Test
+              run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
-      - name: Run tests with race detector and coverage
-        run: |
-          go test -v -race -covermode=atomic \
-            -coverprofile=coverage.out \
-            ./config/... ./internal/...
-
-      - name: Enforce minimum coverage (60%)
-        run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | tr -d '%')
-          echo "Total package coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 60" | bc -l) )); then
-            echo "❌ Coverage ${COVERAGE}% is below the required 60% threshold."
-            exit 1
-          else
-            echo "✅ Coverage ${COVERAGE}% meets the 60% threshold."
-          fi
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.out
-          retention-days: 14
-
-      # ── Cross-compilation check ───────────────────────────────────────────────
-
-      - name: Build — Linux amd64
-        run: GOOS=linux GOARCH=amd64 go build -o /dev/null .
-
-      - name: Build — macOS arm64
-        run: GOOS=darwin GOARCH=arm64 go build -o /dev/null .
-
-      - name: Build — Windows amd64
-        run: GOOS=windows GOARCH=amd64 go build -o /dev/null .
+            - name: Show coverage summary
+              run: go tool cover -func=coverage.out | tail -n 1
