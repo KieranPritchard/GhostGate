@@ -61,7 +61,7 @@ var stageCmd = &cobra.Command{
 		// Prepares the source directory
 		sourceDir, err := input.PrepareFilePath(source)
 		if err != nil {
-			logger.Error(ctx, "Cleaning and validation failed on source directory (could not parse)", targetDir)
+			logger.Error(ctx, "Cleaning and validation failed on source directory (could not parse)", sourceDir)
 			fmt.Println("[!] Source directory parsing error encountered:", err)
 			os.Exit(1)
 		}
