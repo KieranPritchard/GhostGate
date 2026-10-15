@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
+// Cleans and validates the file paths
 func PrepareFilePath(path string) (string, error) {
-	// Cleans and validates the file paths
+	// Checks if the path is empty
+	trimmed := strings.TrimSpace(path)
+	if trimmed == "" {
+		return "", errors.New("file path must not be empty")
+	}
 
 	// Cleans the file path and trims the space
 	path = filepath.Clean(strings.TrimSpace(path))
-
-	// Checks if the path is empty
-	if path == "" {
-		return "", errors.New("file path must not be empty")
-	}
 
 	// Checks for at least one alphabetical character
 	match, err := regexp.MatchString(`[[:alpha:]]`, path)
