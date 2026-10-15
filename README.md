@@ -6,7 +6,7 @@ GhostGate simplifies the process of setting up payload staging environments, run
 
 ---
 
-## Features
+## Features 
 
 | Feature | Subcommand | Description |
 |---|---|---|
